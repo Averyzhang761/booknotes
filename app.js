@@ -989,8 +989,20 @@ async function init() {
     return;
   }
 
+  db.auth.onAuthStateChange((_event, session) => {
+    state.session = session;
+    if (session) {
+      loadCloudData();
+    } else {
+      render();
+      setView("sync");
+    }
+  });
+
   const url = new URL(location.href);
-  if (url.searchParams.has("code")) {
+  const hasCodeCallback = url.searchParams.has("code");
+  const hasHashCallback = url.hash.includes("access_token");
+  if (hasCodeCallback) {
     const { error } = await db.auth.exchangeCodeForSession(location.href);
     if (error) {
       syncStatus.textContent = error.message;
@@ -1002,10 +1014,9 @@ async function init() {
 
   const { data } = await db.auth.getSession();
   state.session = data.session;
-  db.auth.onAuthStateChange((_event, session) => {
-    state.session = session;
-    loadCloudData();
-  });
+  if (hasHashCallback && state.session) {
+    history.replaceState({}, document.title, `${location.origin}${location.pathname}`);
+  }
 
   if (state.session) {
     await loadCloudData();
