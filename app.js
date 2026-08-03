@@ -443,12 +443,28 @@ async function invokeWeread(body) {
   }
   const { data, error } = await db.functions.invoke("weread-gateway", { body });
   if (error || data?.error) {
-    const message = data?.error || error?.message || "微信读书同步失败";
+    const message = data?.error || (await readFunctionError(error)) || error?.message || "微信读书同步失败";
     wereadStatus.textContent = message;
     showToast(message);
     return null;
   }
   return data;
+}
+
+async function readFunctionError(error) {
+  const response = error?.context;
+  if (!response) return null;
+
+  try {
+    const body = await response.clone().json();
+    return body.error || body.msg || body.message || JSON.stringify(body);
+  } catch {
+    try {
+      return await response.clone().text();
+    } catch {
+      return null;
+    }
+  }
 }
 
 async function importWereadShelf() {
