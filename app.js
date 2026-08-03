@@ -219,6 +219,7 @@ function render() {
   syncStatus.textContent = statusText();
   wereadStatus.textContent = state.session ? "可同步微信读书" : "登录后可同步微信读书";
   authForm.classList.toggle("is-hidden", Boolean(state.session) || !canUseSupabase);
+  googleLogin.classList.toggle("is-hidden", Boolean(state.session) || !canUseSupabase);
   signOut.classList.toggle("is-hidden", !state.session);
   renderNotes(book?.id);
   renderBooks();
@@ -227,7 +228,7 @@ function render() {
 function statusText() {
   if (!canUseSupabase) return "需要配置 Supabase publishable key";
   if (!state.session) return "未登录云端";
-  return `已同步 ${state.books.length} 本书 · ${state.notes.length} 条`;
+  return `${state.session.user.email} · ${state.books.length} 本书 · ${state.notes.length} 条`;
 }
 
 function renderNotes(bookId) {
@@ -442,8 +443,9 @@ async function invokeWeread(body) {
   }
   const { data, error } = await db.functions.invoke("weread-gateway", { body });
   if (error || data?.error) {
-    wereadStatus.textContent = "微信读书同步失败";
-    showToast("微信读书同步失败");
+    const message = data?.error || error?.message || "微信读书同步失败";
+    wereadStatus.textContent = message;
+    showToast(message);
     return null;
   }
   return data;
@@ -626,6 +628,17 @@ async function init() {
   if (!canUseSupabase) {
     setView("sync");
     return;
+  }
+
+  const url = new URL(location.href);
+  if (url.searchParams.has("code")) {
+    const { error } = await db.auth.exchangeCodeForSession(location.href);
+    if (error) {
+      syncStatus.textContent = error.message;
+      showToast(error.message);
+    } else {
+      history.replaceState({}, document.title, `${location.origin}${location.pathname}`);
+    }
   }
 
   const { data } = await db.auth.getSession();
