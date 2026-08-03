@@ -397,7 +397,14 @@ async function sendLoginLink(event) {
     options: { emailRedirectTo: `${location.origin}${location.pathname}` },
   });
 
-  showToast(error ? "登录链接发送失败" : "登录链接已发送");
+  if (error) {
+    syncStatus.textContent = error.message;
+    showToast(error.message);
+    return;
+  }
+
+  syncStatus.textContent = "登录链接已发送，请检查邮箱和垃圾箱";
+  showToast("登录链接已发送");
 }
 
 async function signOutUser() {
