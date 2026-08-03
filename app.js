@@ -495,7 +495,7 @@ async function importWereadShelf() {
 
   const { error } = await db.from("books").upsert(rows, { onConflict: "user_id,source,external_id" });
   if (error) {
-    showToast("书架写入失败");
+    showDbError("书架写入失败", error);
     return;
   }
 
@@ -524,7 +524,7 @@ async function importWereadNotebooks() {
 
   const { error } = await db.from("books").upsert(rows, { onConflict: "user_id,source,external_id" });
   if (error) {
-    showToast("笔记本写入失败");
+    showDbError("笔记本写入失败", error);
     return;
   }
 
@@ -562,12 +562,18 @@ async function importCurrentWereadNotes() {
 
   const { error } = await db.from("notes").upsert(rows, { onConflict: "user_id,source,external_id" });
   if (error) {
-    showToast("划线写入失败");
+    showDbError("划线写入失败", error);
     return;
   }
 
   await loadCloudData();
   wereadStatus.textContent = `已导入 ${rows.length} 条当前书划线`;
+}
+
+function showDbError(prefix, error) {
+  const message = `${prefix}: ${error.message || error.details || error.code || "未知数据库错误"}`;
+  wereadStatus.textContent = message;
+  showToast(message);
 }
 
 tabs.forEach((tab) => {
