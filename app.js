@@ -20,6 +20,7 @@ let selectedBookIds = new Set();
 let selectedWereadBook = null;
 let activeNoteView = "mine";
 let pasteTimer;
+let autoSavePasteInFlight = false;
 let toastTimer;
 let swipedBookId = null;
 
@@ -238,19 +239,19 @@ async function saveNote() {
   const text = noteInput.value.trim();
   if (!text) {
     noteInput.focus();
-    return;
+    return false;
   }
   if (!state.session) {
     showToast("先登录，笔记才会进云端");
     setView("sync");
-    return;
+    return false;
   }
 
   const book = currentBook();
   if (!book) {
     showToast("先加一本书");
     setView("books");
-    return;
+    return false;
   }
 
   const { data, error } = await db
@@ -261,7 +262,7 @@ async function saveNote() {
 
   if (error) {
     showToast("保存失败，未写入云端");
-    return;
+    return false;
   }
 
   state.notes.unshift({
@@ -280,8 +281,9 @@ async function saveNote() {
   setType(selectedType);
   render();
   updateInputMeta();
-  showToast(`已存到《${book.title}》`);
+  showToast(`已保存到《${book.title}》`);
   noteInput.focus();
+  return true;
 }
 
 function render() {
@@ -426,8 +428,9 @@ async function pasteFromClipboard() {
     noteInput.focus();
     insertIntoNoteInput(text);
     updateInputMeta();
-    maybeAutoSavePaste();
-    showToast("已粘贴");
+    if (!maybeAutoSavePaste()) {
+      showToast("已粘贴");
+    }
   } catch {
     noteInput.focus();
     showToast("已定位输入框，请点系统粘贴");
@@ -595,8 +598,19 @@ function exportNotes() {
 
 function maybeAutoSavePaste() {
   clearTimeout(pasteTimer);
-  if (!prefs.autoSavePaste) return;
-  pasteTimer = setTimeout(saveNote, 260);
+  if (!prefs.autoSavePaste) return false;
+  pasteTimer = setTimeout(autoSavePastedNote, 260);
+  return true;
+}
+
+async function autoSavePastedNote() {
+  if (autoSavePasteInFlight) return;
+  autoSavePasteInFlight = true;
+  try {
+    await saveNote();
+  } finally {
+    autoSavePasteInFlight = false;
+  }
 }
 
 async function sendLoginLink(event) {
@@ -1016,7 +1030,7 @@ autoSavePaste.checked = Boolean(prefs.autoSavePaste);
 autoSavePaste.addEventListener("change", () => {
   prefs.autoSavePaste = autoSavePaste.checked;
   savePrefs();
-  showToast(autoSavePaste.checked ? "已开启粘贴后自动存下" : "已关闭自动存下");
+  showToast(autoSavePaste.checked ? "已开启粘贴后自动保存" : "已关闭自动保存");
   noteInput.focus();
 });
 bookSwitchButton.addEventListener("click", () => setView("books"));

@@ -269,7 +269,7 @@ textarea {
   outline: 0;
   color: var(--ink);
   background: transparent;
-  font-family: ui-serif, "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Segoe UI", sans-serif;
   font-size: 19px;
   line-height: 32px;
 }
@@ -478,7 +478,7 @@ textarea::placeholder {
 }
 
 .note-text {
-  font-family: Georgia, "Songti SC", serif;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Segoe UI", sans-serif;
   font-size: 16px;
   line-height: 1.65;
   white-space: pre-wrap;
