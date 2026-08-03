@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f5ef" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="读书笔记" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>读书笔记</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="phone-shell" aria-label="读书笔记应用">
+      <section class="app-page" data-view="capture">
+        <header class="topbar">
+          <button class="icon-button" type="button" id="bookSwitch" aria-label="切换当前书">书</button>
+          <div>
+            <p class="kicker">正在读</p>
+            <h1 id="currentBookTitle">悉达多</h1>
+          </div>
+          <button class="icon-button sync-dot" type="button" id="syncOpen" aria-label="微信读书同步">微</button>
+        </header>
+
+        <section class="paper-card capture-card">
+          <div class="capture-meta">
+            <span id="detectedType">体会</span>
+            <span id="wordCount">0 字</span>
+          </div>
+          <textarea
+            id="noteInput"
+            aria-label="写读书笔记"
+            placeholder="粘贴摘句，或直接写一句想法..."
+            autocomplete="off"
+          ></textarea>
+          <div class="capture-actions">
+            <div class="segmented" aria-label="笔记类型">
+              <button type="button" class="segment is-active" data-type="体会">体会</button>
+              <button type="button" class="segment" data-type="摘句">摘句</button>
+              <button type="button" class="segment" data-type="random">random</button>
+            </div>
+            <button type="button" class="save-button" id="saveNote">存下</button>
+          </div>
+        </section>
+
+        <label class="auto-save-row">
+          <input type="checkbox" id="autoSavePaste" />
+          <span>粘贴后自动存下</span>
+        </label>
+
+        <section class="quick-row" aria-label="快速操作">
+          <button type="button" id="pasteButton">粘贴</button>
+          <button type="button" id="quoteWrap">加书摘</button>
+          <button type="button" id="clearInput">清空</button>
+        </section>
+
+        <section class="section-head">
+          <h2>刚写下</h2>
+          <button type="button" id="exportNotes">导出</button>
+        </section>
+
+        <section class="notes-list" id="notesList" aria-live="polite"></section>
+      </section>
+
+      <section class="app-page is-hidden" data-view="books">
+        <header class="plain-header">
+          <h2>书</h2>
+          <button type="button" class="text-button" id="addBook">加一本</button>
+        </header>
+        <form class="paper-card book-form is-hidden" id="bookForm">
+          <label>
+            <span>书名</span>
+            <input id="bookTitleInput" type="text" autocomplete="off" placeholder="比如：置身事内" />
+          </label>
+          <label>
+            <span>作者 / 备注</span>
+            <input id="bookAuthorInput" type="text" autocomplete="off" placeholder="可不填" />
+          </label>
+          <div class="form-actions">
+            <button type="button" id="cancelBook">取消</button>
+            <button type="submit">设为当前书</button>
+          </div>
+        </form>
+        <section class="book-list" id="bookList"></section>
+      </section>
+
+      <section class="app-page is-hidden" data-view="sync">
+        <header class="plain-header">
+          <h2>微信读书</h2>
+          <button type="button" class="text-button" id="syncClose">完成</button>
+        </header>
+        <section class="paper-card sync-card">
+          <p class="sync-status" id="syncStatus">未连接</p>
+          <div class="sync-grid">
+            <button type="button" data-sync="shelf">书架</button>
+            <button type="button" data-sync="notes">划线</button>
+            <button type="button" data-sync="thoughts">想法</button>
+          </div>
+          <p class="sync-foot">后续接入 weread-skills：/shelf/sync、/user/notebooks、书籍笔记接口。</p>
+        </section>
+      </section>
+
+      <nav class="bottom-tabs" aria-label="主导航">
+        <button type="button" class="tab is-active" data-target="capture">
+          <span>写</span>
+        </button>
+        <button type="button" class="tab" data-target="books">
+          <span>书</span>
+        </button>
+        <button type="button" class="tab" data-target="sync">
+          <span>微读</span>
+        </button>
+      </nav>
+      <p class="toast" id="toast" role="status" aria-live="polite"></p>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
