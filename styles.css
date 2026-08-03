@@ -444,6 +444,39 @@ textarea::placeholder {
   line-height: 1.6;
 }
 
+.bridge-page .sync-card {
+  margin-top: 14px;
+}
+
+.bridge-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bridge-actions button {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(250, 251, 247, 0.76);
+  color: var(--green);
+}
+
+.bridge-actions button:first-child {
+  color: var(--muted);
+}
+
+.bridge-actions button:last-child {
+  border: 0;
+  background: var(--ink);
+  color: white;
+}
+
+.bridge-book-row {
+  margin-bottom: 10px;
+}
+
 .auth-form {
   display: grid;
   gap: 10px;

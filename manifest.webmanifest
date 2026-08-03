@@ -8,6 +8,13 @@
   "background_color": "#f4f5ef",
   "theme_color": "#f4f5ef",
   "orientation": "portrait",
+  "shortcuts": [
+    {
+      "name": "中转器",
+      "short_name": "中转器",
+      "url": "./v2.html?v=20260803-1"
+    }
+  ],
   "icons": [
     {
       "src": "./icon.svg",
