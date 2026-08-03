@@ -10,8 +10,8 @@
         min-height: 100vh;
         display: grid;
         place-items: center;
-        background: #f4f5ef;
-        color: #202729;
+        background: radial-gradient(circle at 18% 4%, rgba(109, 168, 255, 0.22), transparent 22rem), #080b10;
+        color: #d7e0ea;
         font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
       }
 
@@ -28,15 +28,15 @@
         border-radius: 8px;
         display: grid;
         place-items: center;
-        background: #202729;
-        color: white;
+        background: linear-gradient(135deg, #5c9dff, #8ed7ff);
+        color: #06101f;
         text-decoration: none;
         font: inherit;
       }
 
       p {
         margin: 0;
-        color: #687276;
+        color: #7c8797;
         line-height: 1.7;
       }
     </style>
@@ -46,7 +46,7 @@
       <h1>重置 Booknotes 缓存</h1>
       <p id="status">点击按钮会移除旧 service worker 和缓存，不会删除云端笔记。</p>
       <button type="button" id="reset">清缓存并重新打开</button>
-      <a href="./index.html?v=20260803-4">直接打开新版</a>
+      <a href="./index.html?v=20260803-18">直接打开新版</a>
     </main>
     <script>
       async function reset() {
@@ -64,7 +64,7 @@
         }
 
         status.textContent = "已清理，正在打开新版...";
-        location.href = "./index.html?v=20260803-4";
+        location.href = "./index.html?v=20260803-18";
       }
 
       document.querySelector("#reset").addEventListener("click", reset);

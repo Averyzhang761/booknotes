@@ -64,6 +64,7 @@ const searchWereadBookButton = document.querySelector("#searchWereadBook");
 const exportNotesButton = document.querySelector("#exportNotes");
 const syncOpenButton = document.querySelector("#syncOpen");
 const syncCloseButton = document.querySelector("#syncClose");
+const themeToggleButton = document.querySelector("#themeToggle");
 const importWereadShelfButton = document.querySelector("#importWereadShelf");
 const importWereadNotebooksButton = document.querySelector("#importWereadNotebooks");
 const importCurrentWereadNotesButton = document.querySelector("#importCurrentWereadNotes");
@@ -78,6 +79,19 @@ function loadPrefs() {
 
 function savePrefs() {
   localStorage.setItem(prefsKey, JSON.stringify(prefs));
+}
+
+function applyTheme(theme = prefs.theme || "night") {
+  const nextTheme = theme === "day" ? "day" : "night";
+  document.documentElement.dataset.theme = nextTheme;
+  themeToggleButton.textContent = nextTheme === "day" ? "夜" : "日";
+  themeToggleButton.setAttribute("aria-label", nextTheme === "day" ? "切换到夜间主题" : "切换到白天主题");
+}
+
+function toggleTheme() {
+  prefs.theme = (prefs.theme || "night") === "night" ? "day" : "night";
+  savePrefs();
+  applyTheme(prefs.theme);
 }
 
 function showToast(message) {
@@ -1040,11 +1054,13 @@ signOut.addEventListener("click", signOutUser);
 exportNotesButton.addEventListener("click", exportNotes);
 syncOpenButton.addEventListener("click", () => setView("sync"));
 syncCloseButton.addEventListener("click", () => setView("capture"));
+themeToggleButton.addEventListener("click", toggleTheme);
 importWereadShelfButton.addEventListener("click", importWereadShelf);
 importWereadNotebooksButton.addEventListener("click", importWereadNotebooks);
 importCurrentWereadNotesButton.addEventListener("click", importCurrentWereadNotes);
 
 async function init() {
+  applyTheme();
   render();
   updateInputMeta();
 

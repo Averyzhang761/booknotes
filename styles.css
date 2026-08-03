@@ -1,16 +1,63 @@
 :root {
-  color-scheme: light;
-  --ink: #202729;
-  --muted: #687276;
-  --paper: #f4f5ef;
-  --paper-deep: #e9ede6;
-  --line: #d5ddd8;
-  --green: #42695f;
-  --blue: #4c7284;
-  --red: #9a5b64;
-  --shadow: 0 24px 70px rgba(26, 43, 44, 0.14);
+  color-scheme: dark;
+  --ink: #d7e0ea;
+  --muted: #7c8797;
+  --paper: #080b10;
+  --paper-deep: #111722;
+  --line: rgba(215, 224, 234, 0.14);
+  --accent: #6da8ff;
+  --accent-soft: #91c7ff;
+  --danger: #ff7b8f;
+  --panel: rgba(17, 23, 34, 0.78);
+  --panel-strong: rgba(22, 31, 46, 0.92);
+  --panel-soft: rgba(215, 224, 234, 0.06);
+  --field: rgba(8, 11, 16, 0.42);
+  --button: rgba(215, 224, 234, 0.07);
+  --button-active: linear-gradient(135deg, #5c9dff, #8ed7ff);
+  --body-bg: radial-gradient(circle at 18% 4%, rgba(109, 168, 255, 0.22), transparent 22rem),
+    radial-gradient(circle at 88% 12%, rgba(145, 199, 255, 0.1), transparent 20rem),
+    linear-gradient(145deg, #040609 0%, #0b1018 55%, #111722 100%);
+  --shell-bg: linear-gradient(rgba(215, 224, 234, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 8px 8px, rgba(109, 168, 255, 0.12) 1px, transparent 1.4px),
+    var(--paper);
+  --shell-overlay: linear-gradient(90deg, rgba(109, 168, 255, 0.12), transparent 18%, transparent 86%, rgba(145, 199, 255, 0.08));
+  --text-placeholder: rgba(124, 135, 151, 0.72);
+  --bottom-bg: rgba(8, 11, 16, 0.82);
+  --toast-bg: rgba(215, 224, 234, 0.92);
+  --toast-ink: #080b10;
+  --shadow: 0 26px 90px rgba(0, 0, 0, 0.48);
   --radius: 8px;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Segoe UI", sans-serif;
+}
+
+:root[data-theme="day"] {
+  color-scheme: light;
+  --ink: #111827;
+  --muted: #6f7b8c;
+  --paper: #f6f8fa;
+  --paper-deep: #e7ecf2;
+  --line: rgba(17, 24, 39, 0.12);
+  --accent: #2f6bff;
+  --accent-soft: #5b8cff;
+  --danger: #d0526f;
+  --panel: rgba(255, 255, 255, 0.76);
+  --panel-strong: rgba(255, 255, 255, 0.94);
+  --panel-soft: rgba(17, 24, 39, 0.04);
+  --field: rgba(255, 255, 255, 0.66);
+  --button: rgba(255, 255, 255, 0.78);
+  --button-active: linear-gradient(135deg, #2f6bff, #6da8ff);
+  --body-bg: radial-gradient(circle at 18% 4%, rgba(47, 107, 255, 0.15), transparent 22rem),
+    radial-gradient(circle at 90% 12%, rgba(109, 168, 255, 0.16), transparent 20rem),
+    linear-gradient(145deg, #eef3f8 0%, #d8e2ec 100%);
+  --shell-bg: linear-gradient(rgba(17, 24, 39, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 8px 8px, rgba(47, 107, 255, 0.08) 1px, transparent 1.4px),
+    var(--paper);
+  --shell-overlay: linear-gradient(90deg, rgba(47, 107, 255, 0.08), transparent 18%, transparent 86%, rgba(17, 24, 39, 0.05));
+  --text-placeholder: rgba(111, 123, 140, 0.76);
+  --bottom-bg: rgba(246, 248, 250, 0.84);
+  --toast-bg: rgba(17, 24, 39, 0.94);
+  --toast-ink: white;
+  --shadow: 0 28px 80px rgba(17, 24, 39, 0.16);
 }
 
 * {
@@ -25,9 +72,7 @@ body {
 body {
   margin: 0;
   color: var(--ink);
-  background:
-    radial-gradient(circle at 18% 8%, rgba(76, 114, 132, 0.11), transparent 24rem),
-    linear-gradient(135deg, #e1e7e1 0%, #c3d0ca 100%);
+  background: var(--body-bg);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -48,10 +93,7 @@ button {
   min-height: 100vh;
   margin: 0 auto;
   overflow: hidden;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
-    radial-gradient(circle at 8px 8px, rgba(38, 57, 58, 0.04) 1px, transparent 1.4px),
-    var(--paper);
+  background: var(--shell-bg);
   background-size: 100% 32px, 15px 15px, auto;
   box-shadow: var(--shadow);
 }
@@ -61,8 +103,7 @@ button {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(90deg, rgba(41, 66, 65, 0.045), transparent 18%, transparent 86%, rgba(41, 66, 65, 0.04));
-  mix-blend-mode: multiply;
+  background: var(--shell-overlay);
 }
 
 .app-page {
@@ -90,6 +131,12 @@ button {
   min-width: 0;
 }
 
+.top-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
 .kicker {
   margin: 0 0 2px;
   color: var(--muted);
@@ -104,9 +151,9 @@ p {
 
 h1 {
   overflow: hidden;
-  font-family: Georgia, "Songti SC", serif;
+  font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
   font-size: 24px;
-  font-weight: 600;
+  font-weight: 720;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -121,31 +168,35 @@ h2 {
 .quick-row button,
 .sync-grid button {
   border: 1px solid var(--line);
-  background: rgba(250, 251, 247, 0.76);
+  background: var(--button);
   border-radius: var(--radius);
+  backdrop-filter: blur(16px);
 }
 
 .icon-button {
   width: 42px;
   height: 42px;
-  color: var(--green);
+  color: var(--accent);
   font-weight: 700;
 }
 
 .sync-dot {
-  color: var(--blue);
+  color: var(--accent-soft);
+}
+
+.theme-dot {
+  color: var(--accent);
 }
 
 .paper-card {
   position: relative;
   margin-top: 18px;
-  border: 1px solid rgba(87, 111, 109, 0.18);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  background:
-    linear-gradient(90deg, rgba(154, 91, 100, 0.075) 0 1px, transparent 1px 100%),
-    repeating-linear-gradient(0deg, transparent 0 31px, rgba(76, 114, 132, 0.105) 32px),
-    rgba(250, 251, 247, 0.92);
+  background: linear-gradient(135deg, rgba(109, 168, 255, 0.08), transparent 34%), var(--panel);
   background-position: 28px 0, 0 15px, 0 0;
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(18px);
 }
 
 .capture-card {
@@ -171,13 +222,13 @@ textarea {
   outline: 0;
   color: var(--ink);
   background: transparent;
-  font-family: Georgia, "Songti SC", serif;
+  font-family: ui-serif, "Songti SC", "Noto Serif CJK SC", Georgia, serif;
   font-size: 19px;
   line-height: 32px;
 }
 
 textarea::placeholder {
-  color: rgba(104, 114, 118, 0.72);
+  color: var(--text-placeholder);
 }
 
 .capture-actions,
@@ -200,7 +251,7 @@ textarea::placeholder {
   padding: 3px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(233, 237, 230, 0.9);
+  background: var(--panel-soft);
 }
 
 .segment {
@@ -213,8 +264,9 @@ textarea::placeholder {
 }
 
 .segment.is-active {
-  background: var(--green);
-  color: white;
+  background: var(--button-active);
+  color: #06101f;
+  font-weight: 700;
 }
 
 .save-button {
@@ -222,8 +274,8 @@ textarea::placeholder {
   min-height: 42px;
   border: 0;
   border-radius: var(--radius);
-  background: var(--ink);
-  color: white;
+  background: var(--button-active);
+  color: #06101f;
   font-weight: 650;
 }
 
@@ -244,7 +296,7 @@ textarea::placeholder {
 .auto-save-row input {
   width: 18px;
   height: 18px;
-  accent-color: var(--green);
+  accent-color: var(--accent);
 }
 
 .quick-row button {
@@ -256,7 +308,7 @@ textarea::placeholder {
 .text-button {
   min-height: 34px;
   padding: 0 12px;
-  color: var(--green);
+  color: var(--accent);
 }
 
 .note-tabs {
@@ -295,11 +347,11 @@ textarea::placeholder {
   left: 12px;
   height: 2px;
   border-radius: 999px;
-  background: var(--green);
+  background: var(--accent);
 }
 
 .note-export {
-  color: var(--green);
+  color: var(--accent);
   font-weight: 650;
 }
 
@@ -327,7 +379,7 @@ textarea::placeholder {
   min-height: 42px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(250, 251, 247, 0.86);
+  background: var(--field);
   color: var(--ink);
   padding: 0 12px;
 }
@@ -335,10 +387,10 @@ textarea::placeholder {
 .note-item,
 .book-swipe,
 .book-item {
-  border: 1px solid rgba(87, 111, 109, 0.14);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(250, 251, 247, 0.78);
-  box-shadow: 0 6px 18px rgba(26, 43, 44, 0.06);
+  background: var(--panel);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
 }
 
 .note-item {
@@ -346,17 +398,17 @@ textarea::placeholder {
 }
 
 .note-item.is-auxiliary {
-  background: rgba(250, 251, 247, 0.48);
+  background: var(--panel-soft);
   box-shadow: none;
 }
 
 .note-item.is-auxiliary .note-text {
-  color: rgba(43, 54, 55, 0.76);
+  color: var(--muted);
   font-size: 14px;
 }
 
 .note-item.is-auxiliary .note-type {
-  color: var(--green);
+  color: var(--accent);
 }
 
 .note-top {
@@ -382,7 +434,7 @@ textarea::placeholder {
 }
 
 .note-type {
-  color: var(--red);
+  color: var(--danger);
 }
 
 .empty {
@@ -399,7 +451,7 @@ textarea::placeholder {
 .book-swipe {
   position: relative;
   overflow: hidden;
-  background: rgba(154, 91, 100, 0.1);
+  background: rgba(255, 123, 143, 0.14);
 }
 
 .book-swipe:not(.is-open) {
@@ -434,7 +486,7 @@ textarea::placeholder {
   inset: 0 0 0 auto;
   width: 92px;
   border: 0;
-  background: rgba(154, 91, 100, 0.92);
+  background: var(--danger);
   color: white;
   font-weight: 650;
 }
@@ -463,7 +515,7 @@ textarea::placeholder {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: transparent;
-  color: var(--green);
+  color: var(--accent);
   font-size: 18px;
   line-height: 1;
 }
@@ -471,7 +523,7 @@ textarea::placeholder {
 .book-action.is-current {
   min-width: 46px;
   padding: 0 10px;
-  background: rgba(87, 111, 109, 0.1);
+  background: var(--panel-soft);
   font-size: 13px;
   font-weight: 650;
 }
@@ -480,7 +532,7 @@ textarea::placeholder {
   flex: 0 0 auto;
   width: 20px;
   height: 20px;
-  accent-color: var(--green);
+  accent-color: var(--accent);
 }
 
 .book-form {
@@ -502,7 +554,7 @@ textarea::placeholder {
   min-height: 42px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(250, 251, 247, 0.82);
+  background: var(--field);
   color: var(--ink);
   padding: 0 12px;
 }
@@ -517,14 +569,14 @@ textarea::placeholder {
   min-height: 42px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(250, 251, 247, 0.76);
+  background: var(--button);
   color: var(--muted);
 }
 
 .form-actions button[type="submit"] {
   border: 0;
-  background: var(--green);
-  color: white;
+  background: var(--button-active);
+  color: #06101f;
   font-weight: 650;
 }
 
@@ -540,7 +592,7 @@ textarea::placeholder {
   padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(250, 251, 247, 0.72);
+  background: var(--panel);
   color: var(--ink);
   text-align: left;
 }
@@ -550,8 +602,8 @@ textarea::placeholder {
 }
 
 .weread-result.is-selected {
-  border-color: rgba(87, 111, 109, 0.42);
-  background: rgba(218, 225, 212, 0.58);
+  border-color: color-mix(in srgb, var(--accent), transparent 45%);
+  background: var(--panel-soft);
 }
 
 .bulk-bar {
@@ -563,7 +615,7 @@ textarea::placeholder {
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(250, 251, 247, 0.82);
+  background: var(--panel);
   color: var(--muted);
   font-size: 13px;
 }
@@ -582,8 +634,8 @@ textarea::placeholder {
 }
 
 .bulk-bar button:last-child {
-  border-color: rgba(154, 91, 100, 0.34);
-  color: var(--red);
+  border-color: color-mix(in srgb, var(--danger), transparent 55%);
+  color: var(--danger);
 }
 
 .sync-card {
@@ -601,7 +653,7 @@ textarea::placeholder {
 .sync-grid button {
   flex: 1;
   min-height: 54px;
-  color: var(--blue);
+  color: var(--accent-soft);
   font-weight: 650;
 }
 
@@ -630,7 +682,7 @@ textarea::placeholder {
   min-height: 42px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(250, 251, 247, 0.82);
+  background: var(--field);
   color: var(--ink);
   padding: 0 12px;
 }
@@ -641,15 +693,15 @@ textarea::placeholder {
   min-height: 42px;
   border: 0;
   border-radius: var(--radius);
-  background: var(--green);
-  color: white;
+  background: var(--button-active);
+  color: #06101f;
   font-weight: 650;
 }
 
 .google-button {
   width: 100%;
   margin-top: 14px;
-  background: #ffffff;
+  background: var(--button);
   color: var(--ink);
   border: 1px solid var(--line);
 }
@@ -657,7 +709,8 @@ textarea::placeholder {
 .signout-button {
   width: 100%;
   margin-top: 14px;
-  background: var(--ink);
+  background: var(--panel-strong);
+  color: var(--ink);
 }
 
 .bottom-tabs {
@@ -671,8 +724,8 @@ textarea::placeholder {
   width: min(100vw, 430px);
   margin: 0 auto;
   padding: 8px 14px calc(18px + env(safe-area-inset-bottom));
-  border-top: 1px solid rgba(87, 111, 109, 0.18);
-  background: rgba(244, 245, 239, 0.93);
+  border-top: 1px solid var(--line);
+  background: var(--bottom-bg);
   backdrop-filter: blur(14px);
 }
 
@@ -685,8 +738,9 @@ textarea::placeholder {
 }
 
 .tab.is-active {
-  background: var(--ink);
-  color: white;
+  background: var(--button-active);
+  color: #06101f;
+  font-weight: 700;
 }
 
 .toast {
@@ -699,8 +753,8 @@ textarea::placeholder {
   margin: 0 auto;
   padding: 10px 12px;
   border-radius: var(--radius);
-  background: rgba(32, 39, 41, 0.92);
-  color: white;
+  background: var(--toast-bg);
+  color: var(--toast-ink);
   font-size: 13px;
   text-align: center;
   opacity: 0;
@@ -716,7 +770,7 @@ textarea::placeholder {
 
 button:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--blue);
+  outline: 2px solid var(--accent-soft);
   outline-offset: 2px;
 }
 

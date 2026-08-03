@@ -1,20 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="paper" x1="96" y1="72" x2="420" y2="448" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#fafbf7"/>
-      <stop offset="1" stop-color="#e9ede6"/>
+    <linearGradient id="panel" x1="86" y1="70" x2="426" y2="456" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#182235"/>
+      <stop offset="1" stop-color="#0b1018"/>
     </linearGradient>
-    <filter id="softShadow" x="64" y="52" width="384" height="424" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#1a2b2c" flood-opacity=".16"/>
+    <linearGradient id="beam" x1="146" y1="118" x2="366" y2="382" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8ed7ff"/>
+      <stop offset="1" stop-color="#5c9dff"/>
+    </linearGradient>
+    <filter id="softShadow" x="54" y="46" width="404" height="432" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#000000" flood-opacity=".42"/>
     </filter>
   </defs>
 
-  <rect width="512" height="512" rx="118" fill="#f4f5ef"/>
-  <path d="M112 100c0-18 14-32 32-32h224c18 0 32 14 32 32v312c0 18-14 32-32 32H144c-18 0-32-14-32-32V100Z" fill="url(#paper)" filter="url(#softShadow)"/>
-  <path d="M144 68h224c18 0 32 14 32 32v312c0 18-14 32-32 32H144c-18 0-32-14-32-32V100c0-18 14-32 32-32Z" fill="none" stroke="#42695f" stroke-width="10"/>
-  <path d="M159 68v376" stroke="#9a5b64" stroke-width="7" stroke-linecap="round" opacity=".78"/>
-  <path d="M206 166h118M206 222h154M206 278h92" stroke="#4c7284" stroke-width="16" stroke-linecap="round"/>
-  <path d="M332 68v126l-32-24-32 24V68h64Z" fill="#42695f"/>
-  <circle cx="206" cy="340" r="13" fill="#9a5b64" opacity=".88"/>
-  <path d="M235 340h82" stroke="#42695f" stroke-width="13" stroke-linecap="round" opacity=".9"/>
+  <rect width="512" height="512" rx="116" fill="#080b10"/>
+  <path d="M112 98c0-18 14-32 32-32h224c18 0 32 14 32 32v316c0 18-14 32-32 32H144c-18 0-32-14-32-32V98Z" fill="url(#panel)" filter="url(#softShadow)"/>
+  <path d="M144 66h224c18 0 32 14 32 32v316c0 18-14 32-32 32H144c-18 0-32-14-32-32V98c0-18 14-32 32-32Z" fill="none" stroke="#6da8ff" stroke-width="10"/>
+  <path d="M160 118h192M160 176h150M160 234h192M160 292h116" stroke="#d7e0ea" stroke-width="14" stroke-linecap="round" opacity=".84"/>
+  <path d="M332 66v122l-32-24-32 24V66h64Z" fill="url(#beam)"/>
+  <circle cx="162" cy="356" r="11" fill="#8ed7ff"/>
+  <path d="M196 356h120" stroke="#6da8ff" stroke-width="13" stroke-linecap="round"/>
 </svg>
