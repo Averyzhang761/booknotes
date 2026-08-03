@@ -11,9 +11,10 @@ Deno.serve(async (request) => {
     return response({ error: "WEREAD_API_KEY is not configured" }, 500);
   }
 
-  const ownerEmail = Deno.env.get("OWNER_EMAIL");
-  if (ownerEmail && getJwtEmail(request) !== ownerEmail) {
-    return response({ error: "Forbidden" }, 403);
+  const ownerEmail = normalizeEmail(Deno.env.get("OWNER_EMAIL"));
+  const jwtEmail = normalizeEmail(getJwtEmail(request));
+  if (ownerEmail && jwtEmail !== ownerEmail) {
+    return response({ error: `Forbidden: signed in as ${jwtEmail || "unknown"}. Check OWNER_EMAIL secret.` }, 403);
   }
 
   try {
@@ -50,6 +51,10 @@ function getJwtEmail(request: Request) {
   } catch {
     return null;
   }
+}
+
+function normalizeEmail(email: string | null | undefined) {
+  return email?.trim().toLowerCase() || null;
 }
 
 function toWereadBody(body: Record<string, unknown>) {
