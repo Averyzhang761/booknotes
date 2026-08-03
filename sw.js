@@ -1,4 +1,4 @@
-const cacheName = "paper-booknotes-v22";
+const cacheName = "paper-booknotes-v23";
 const appShell = [
   "./",
   "./index.html",
