@@ -24,13 +24,14 @@ alter table public.books add column if not exists external_id text;
 alter table public.notes add column if not exists source text not null default 'manual';
 alter table public.notes add column if not exists external_id text;
 
-create unique index if not exists books_user_source_external_idx
-on public.books (user_id, source, external_id)
-where external_id is not null;
+drop index if exists public.books_user_source_external_idx;
+drop index if exists public.notes_user_source_external_idx;
 
-create unique index if not exists notes_user_source_external_idx
-on public.notes (user_id, source, external_id)
-where external_id is not null;
+create unique index books_user_source_external_idx
+on public.books (user_id, source, external_id);
+
+create unique index notes_user_source_external_idx
+on public.notes (user_id, source, external_id);
 
 alter table public.books enable row level security;
 alter table public.notes enable row level security;
