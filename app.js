@@ -19,12 +19,14 @@ let bookSearchQuery = "";
 let batchMode = false;
 let selectedBookIds = new Set();
 let selectedWereadBook = null;
+let activeNoteView = "mine";
 let pasteTimer;
 let toastTimer;
 let swipedBookId = null;
 
 const views = document.querySelectorAll(".app-page");
 const tabs = document.querySelectorAll(".tab");
+const noteTabs = document.querySelectorAll(".note-tab");
 const noteInput = document.querySelector("#noteInput");
 const detectedType = document.querySelector("#detectedType");
 const wordCount = document.querySelector("#wordCount");
@@ -231,6 +233,7 @@ async function saveNote() {
   noteInput.value = "";
   selectedType = "体会";
   typeLocked = false;
+  activeNoteView = "mine";
   setType(selectedType);
   render();
   updateInputMeta();
@@ -252,6 +255,7 @@ function render() {
   const visibleIds = visibleBooks().map((book) => book.id);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedBookIds.has(id));
   document.querySelector("#toggleSelectBooks").textContent = allVisibleSelected ? "取消全选" : "全选";
+  noteTabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.noteView === activeNoteView));
   renderNotes(book?.id);
   renderBooks();
 }
@@ -273,22 +277,15 @@ function renderNotes(bookId) {
     return;
   }
 
-  const ownNotes = notes.filter((note) => note.source !== "weread");
-  const wereadNotes = notes.filter((note) => note.source === "weread");
-  notesList.innerHTML = [
-    renderNoteGroup("我的笔记", ownNotes, "primary"),
-    renderNoteGroup("微信读书辅助信息", wereadNotes, "auxiliary"),
-  ].join("");
-}
-
-function renderNoteGroup(title, notes, kind) {
-  if (!notes.length) return "";
-  return `
-    <section class="note-group ${kind === "auxiliary" ? "is-auxiliary" : ""}">
-      <div class="note-group-title">${title}</div>
-      ${notes.map((note) => renderNoteItem(note)).join("")}
-    </section>
-  `;
+  const visibleNotes = activeNoteView === "weread"
+    ? notes.filter((note) => note.source === "weread")
+    : notes.filter((note) => note.source !== "weread");
+  if (!visibleNotes.length) {
+    const message = activeNoteView === "weread" ? "这本书还没有微信输入。" : "这本书还没有我的笔记。";
+    notesList.innerHTML = `<div class="empty">${message}</div>`;
+    return;
+  }
+  notesList.innerHTML = visibleNotes.map((note) => renderNoteItem(note)).join("");
 }
 
 function renderNoteItem(note) {
@@ -728,6 +725,7 @@ async function importWereadNotesForBook(book) {
     return;
   }
 
+  activeNoteView = "weread";
   await loadCloudData();
   wereadStatus.textContent = `已导入 ${rows.length} 条当前书微信笔记`;
 }
@@ -744,6 +742,13 @@ tabs.forEach((tab) => {
 
 segments.forEach((segment) => {
   segment.addEventListener("click", () => chooseType(segment.dataset.type));
+});
+
+noteTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    activeNoteView = tab.dataset.noteView;
+    render();
+  });
 });
 
 bookList.addEventListener("click", (event) => {

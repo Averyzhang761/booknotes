@@ -255,18 +255,52 @@ textarea::placeholder {
   color: var(--muted);
 }
 
-.section-head {
-  margin: 24px 0 10px;
-}
-
-.section-head h2 {
-  color: var(--ink);
-}
-
-.section-head button,
 .text-button {
   min-height: 34px;
   padding: 0 12px;
+  color: var(--green);
+}
+
+.note-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+  gap: 6px;
+  margin: 22px 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.note-tab,
+.note-export {
+  min-height: 38px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.note-tab {
+  position: relative;
+  font-weight: 650;
+}
+
+.note-tab.is-active {
+  color: var(--ink);
+}
+
+.note-tab.is-active::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  bottom: -1px;
+  left: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--green);
+}
+
+.note-export {
+  padding: 0 4px 0 10px;
   color: var(--green);
 }
 
@@ -297,22 +331,6 @@ textarea::placeholder {
   background: rgba(250, 251, 247, 0.86);
   color: var(--ink);
   padding: 0 12px;
-}
-
-.note-group {
-  display: grid;
-  gap: 10px;
-}
-
-.note-group + .note-group {
-  margin-top: 6px;
-}
-
-.note-group-title {
-  padding: 4px 2px 0;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 650;
 }
 
 .note-item,

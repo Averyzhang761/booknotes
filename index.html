@@ -10,7 +10,7 @@
     <title>读书笔记</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260803-10" />
+    <link rel="stylesheet" href="./styles.css?v=20260803-11" />
   </head>
   <body>
     <main class="phone-shell" aria-label="读书笔记应用">
@@ -60,9 +60,10 @@
           <button type="button" onclick="location.href='./v2.html?v=20260803-2'">打开阅读收件箱</button>
         </section>
 
-        <section class="section-head">
-          <h2>刚写下</h2>
-          <button type="button" id="exportNotes">导出</button>
+        <section class="note-tabs" id="noteTabs" aria-label="笔记来源">
+          <button type="button" class="note-tab is-active" data-note-view="mine">我的</button>
+          <button type="button" class="note-tab" data-note-view="weread">微信输入</button>
+          <button type="button" class="note-export" id="exportNotes">导出</button>
         </section>
 
         <section class="notes-list" id="notesList" aria-live="polite"></section>
@@ -152,6 +153,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./config.js?v=20260803"></script>
-    <script src="./app.js?v=20260803-10"></script>
+    <script src="./app.js?v=20260803-11"></script>
   </body>
 </html>
