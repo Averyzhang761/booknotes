@@ -385,12 +385,21 @@ textarea::placeholder {
   background: rgba(154, 91, 100, 0.1);
 }
 
+.book-swipe:not(.is-open) {
+  background: transparent;
+}
+
+.book-swipe:not(.is-open) .delete-book {
+  visibility: hidden;
+}
+
 .book-item {
   position: relative;
   z-index: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  width: 100%;
   min-height: 74px;
   gap: 12px;
   padding: 12px;
@@ -414,6 +423,7 @@ textarea::placeholder {
 }
 
 .book-item > div {
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -543,12 +553,14 @@ textarea::placeholder {
 
 .bulk-bar div {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
 }
 
 .bulk-bar button {
   min-height: 34px;
-  padding: 0 12px;
+  padding: 0 10px;
   color: var(--muted);
 }
 

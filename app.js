@@ -249,6 +249,9 @@ function render() {
   signOut.classList.toggle("is-hidden", !state.session);
   bulkBar.classList.toggle("is-hidden", !batchMode);
   bulkCount.textContent = `已选 ${selectedBookIds.size} 本`;
+  const visibleIds = visibleBooks().map((book) => book.id);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedBookIds.has(id));
+  document.querySelector("#toggleSelectBooks").textContent = allVisibleSelected ? "取消全选" : "全选";
   renderNotes(book?.id);
   renderBooks();
 }
@@ -313,10 +316,9 @@ function renderBooks() {
     return;
   }
 
-  const query = bookSearchQuery.trim().toLowerCase();
-  const books = query
-    ? state.books.filter((book) => `${book.title} ${book.author}`.toLowerCase().includes(query))
-    : state.books;
+  if (batchMode) swipedBookId = null;
+  const query = bookSearchQuery.trim();
+  const books = visibleBooks();
 
   if (!books.length) {
     bookList.innerHTML = `<div class="empty">${query ? "没有匹配的书。" : "还没有书。"}</div>`;
@@ -347,6 +349,13 @@ function renderBooks() {
       `;
     })
     .join("");
+}
+
+function visibleBooks() {
+  const query = bookSearchQuery.trim().toLowerCase();
+  return query
+    ? state.books.filter((book) => `${book.title} ${book.author}`.toLowerCase().includes(query))
+    : state.books;
 }
 
 function escapeHtml(value) {
@@ -913,6 +922,18 @@ document.querySelector("#batchBooks").addEventListener("click", () => {
 document.querySelector("#cancelBatchBooks").addEventListener("click", () => {
   batchMode = false;
   selectedBookIds.clear();
+  render();
+});
+document.querySelector("#toggleSelectBooks").addEventListener("click", () => {
+  const ids = visibleBooks().map((book) => book.id);
+  const allSelected = ids.length > 0 && ids.every((id) => selectedBookIds.has(id));
+  ids.forEach((id) => {
+    if (allSelected) {
+      selectedBookIds.delete(id);
+    } else {
+      selectedBookIds.add(id);
+    }
+  });
   render();
 });
 document.querySelector("#deleteSelectedBooks").addEventListener("click", deleteSelectedBooks);
