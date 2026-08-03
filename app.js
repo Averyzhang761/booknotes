@@ -81,17 +81,25 @@ function savePrefs() {
   localStorage.setItem(prefsKey, JSON.stringify(prefs));
 }
 
-function applyTheme(theme = prefs.theme || "night") {
+function applyTheme(theme = prefs.theme || "day") {
   const nextTheme = theme === "day" ? "day" : "night";
   document.documentElement.dataset.theme = nextTheme;
-  themeToggleButton.textContent = nextTheme === "day" ? "夜" : "日";
+  themeToggleButton.dataset.mode = nextTheme;
   themeToggleButton.setAttribute("aria-label", nextTheme === "day" ? "切换到夜间主题" : "切换到白天主题");
 }
 
 function toggleTheme() {
-  prefs.theme = (prefs.theme || "night") === "night" ? "day" : "night";
+  prefs.theme = (prefs.theme || "day") === "night" ? "day" : "night";
+  prefs.themeVersion = 2;
   savePrefs();
   applyTheme(prefs.theme);
+}
+
+function migrateThemePrefs() {
+  if (prefs.themeVersion === 2) return;
+  prefs.theme = "day";
+  prefs.themeVersion = 2;
+  savePrefs();
 }
 
 function showToast(message) {
@@ -1060,6 +1068,7 @@ importWereadNotebooksButton.addEventListener("click", importWereadNotebooks);
 importCurrentWereadNotesButton.addEventListener("click", importCurrentWereadNotes);
 
 async function init() {
+  migrateThemePrefs();
   applyTheme();
   render();
   updateInputMeta();

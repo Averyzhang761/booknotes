@@ -1,63 +1,65 @@
 :root {
-  color-scheme: dark;
-  --ink: #d7e0ea;
-  --muted: #7c8797;
-  --paper: #080b10;
-  --paper-deep: #111722;
-  --line: rgba(215, 224, 234, 0.14);
-  --accent: #6da8ff;
-  --accent-soft: #91c7ff;
-  --danger: #ff7b8f;
-  --panel: rgba(17, 23, 34, 0.78);
-  --panel-strong: rgba(22, 31, 46, 0.92);
-  --panel-soft: rgba(215, 224, 234, 0.06);
-  --field: rgba(8, 11, 16, 0.42);
-  --button: rgba(215, 224, 234, 0.07);
-  --button-active: linear-gradient(135deg, #5c9dff, #8ed7ff);
-  --body-bg: radial-gradient(circle at 18% 4%, rgba(109, 168, 255, 0.22), transparent 22rem),
-    radial-gradient(circle at 88% 12%, rgba(145, 199, 255, 0.1), transparent 20rem),
-    linear-gradient(145deg, #040609 0%, #0b1018 55%, #111722 100%);
-  --shell-bg: linear-gradient(rgba(215, 224, 234, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 8px 8px, rgba(109, 168, 255, 0.12) 1px, transparent 1.4px),
-    var(--paper);
-  --shell-overlay: linear-gradient(90deg, rgba(109, 168, 255, 0.12), transparent 18%, transparent 86%, rgba(145, 199, 255, 0.08));
-  --text-placeholder: rgba(124, 135, 151, 0.72);
-  --bottom-bg: rgba(8, 11, 16, 0.82);
-  --toast-bg: rgba(215, 224, 234, 0.92);
-  --toast-ink: #080b10;
-  --shadow: 0 26px 90px rgba(0, 0, 0, 0.48);
+  color-scheme: light;
+  --ink: #252525;
+  --muted: #545454;
+  --paper: #fbfbfa;
+  --paper-deep: #e8e8e6;
+  --line: rgba(37, 37, 37, 0.12);
+  --line-strong: rgba(37, 37, 37, 0.2);
+  --accent: #545454;
+  --accent-soft: #9a9a9a;
+  --accent-deep: #252525;
+  --danger: #a76370;
+  --panel: rgba(255, 255, 255, 0.84);
+  --panel-strong: rgba(255, 255, 255, 0.94);
+  --panel-soft: rgba(255, 255, 255, 0.62);
+  --field: rgba(255, 255, 255, 0.88);
+  --button: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(207, 207, 207, 0.34));
+  --button-active: linear-gradient(135deg, rgba(37, 37, 37, 0.98), rgba(84, 84, 84, 0.9) 56%, rgba(125, 125, 125, 0.78));
+  --glass-highlight: linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.08) 46%, rgba(207, 207, 207, 0.12));
+  --body-bg: linear-gradient(145deg, #fbfbfa 0%, #f0f0ee 46%, #dededb 100%);
+  --shell-bg: linear-gradient(155deg, rgba(255, 255, 255, 0.76), rgba(251, 251, 250, 0.54) 42%, rgba(207, 207, 207, 0.24)),
+    linear-gradient(90deg, rgba(37, 37, 37, 0.035), transparent 34%, rgba(125, 125, 125, 0.06));
+  --shell-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.78), transparent 28%, rgba(207, 207, 207, 0.12));
+  --text-placeholder: rgba(125, 125, 125, 0.76);
+  --bottom-bg: rgba(251, 251, 250, 0.92);
+  --toast-bg: rgba(37, 37, 37, 0.92);
+  --toast-ink: #fbfbfa;
+  --active-ink: #fbfbfa;
+  --shadow: 0 28px 86px rgba(37, 37, 37, 0.14);
   --radius: 8px;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Segoe UI", sans-serif;
 }
 
-:root[data-theme="day"] {
-  color-scheme: light;
-  --ink: #111827;
-  --muted: #6f7b8c;
-  --paper: #f6f8fa;
-  --paper-deep: #e7ecf2;
-  --line: rgba(17, 24, 39, 0.12);
-  --accent: #2f6bff;
-  --accent-soft: #5b8cff;
-  --danger: #d0526f;
-  --panel: rgba(255, 255, 255, 0.76);
-  --panel-strong: rgba(255, 255, 255, 0.94);
-  --panel-soft: rgba(17, 24, 39, 0.04);
-  --field: rgba(255, 255, 255, 0.66);
-  --button: rgba(255, 255, 255, 0.78);
-  --button-active: linear-gradient(135deg, #2f6bff, #6da8ff);
-  --body-bg: radial-gradient(circle at 18% 4%, rgba(47, 107, 255, 0.15), transparent 22rem),
-    radial-gradient(circle at 90% 12%, rgba(109, 168, 255, 0.16), transparent 20rem),
-    linear-gradient(145deg, #eef3f8 0%, #d8e2ec 100%);
-  --shell-bg: linear-gradient(rgba(17, 24, 39, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 8px 8px, rgba(47, 107, 255, 0.08) 1px, transparent 1.4px),
-    var(--paper);
-  --shell-overlay: linear-gradient(90deg, rgba(47, 107, 255, 0.08), transparent 18%, transparent 86%, rgba(17, 24, 39, 0.05));
-  --text-placeholder: rgba(111, 123, 140, 0.76);
-  --bottom-bg: rgba(246, 248, 250, 0.84);
-  --toast-bg: rgba(17, 24, 39, 0.94);
-  --toast-ink: white;
-  --shadow: 0 28px 80px rgba(17, 24, 39, 0.16);
+:root[data-theme="night"] {
+  color-scheme: dark;
+  --ink: #f1f1ef;
+  --muted: #d5d5d5;
+  --paper: #252525;
+  --paper-deep: #181818;
+  --line: rgba(241, 241, 239, 0.14);
+  --line-strong: rgba(241, 241, 239, 0.24);
+  --accent: #cfcfcf;
+  --accent-soft: #f1f1ef;
+  --accent-deep: #7d7d7d;
+  --danger: #e9a0ad;
+  --panel: rgba(37, 37, 37, 0.84);
+  --panel-strong: rgba(84, 84, 84, 0.8);
+  --panel-soft: rgba(241, 241, 239, 0.14);
+  --field: rgba(241, 241, 239, 0.14);
+  --button: linear-gradient(135deg, rgba(241, 241, 239, 0.16), rgba(207, 207, 207, 0.07));
+  --button-active: linear-gradient(135deg, rgba(241, 241, 239, 0.92), rgba(207, 207, 207, 0.64), rgba(125, 125, 125, 0.34));
+  --glass-highlight: linear-gradient(135deg, rgba(241, 241, 239, 0.12), rgba(241, 241, 239, 0.02) 48%, rgba(207, 207, 207, 0.08));
+  --body-bg: linear-gradient(145deg, #181818 0%, #252525 48%, #545454 100%);
+  --shell-bg: linear-gradient(155deg, rgba(241, 241, 239, 0.08), rgba(37, 37, 37, 0.52) 42%, rgba(125, 125, 125, 0.14)),
+    linear-gradient(90deg, rgba(241, 241, 239, 0.08), transparent 34%, rgba(207, 207, 207, 0.05));
+  --shell-overlay: linear-gradient(180deg, rgba(241, 241, 239, 0.08), transparent 32%, rgba(207, 207, 207, 0.06));
+  --text-placeholder: rgba(207, 207, 207, 0.72);
+  --bottom-bg: rgba(24, 24, 24, 0.86);
+  --toast-bg: rgba(241, 241, 239, 0.92);
+  --toast-ink: #252525;
+  --active-ink: #252525;
+  --shadow: 0 30px 92px rgba(0, 0, 0, 0.34);
 }
 
 * {
@@ -94,8 +96,9 @@ button {
   margin: 0 auto;
   overflow: hidden;
   background: var(--shell-bg);
-  background-size: 100% 32px, 15px 15px, auto;
+  background-size: auto;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(24px) saturate(140%);
 }
 
 .phone-shell::before {
@@ -110,7 +113,7 @@ button {
   position: relative;
   z-index: 1;
   min-height: 100vh;
-  padding: 18px 16px 92px;
+  padding: 18px 16px 96px;
 }
 
 .is-hidden {
@@ -122,7 +125,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   min-height: 56px;
 }
 
@@ -134,7 +137,7 @@ button {
 .top-actions {
   display: flex;
   flex: 0 0 auto;
-  gap: 8px;
+  gap: 6px;
 }
 
 .kicker {
@@ -170,22 +173,61 @@ h2 {
   border: 1px solid var(--line);
   background: var(--button);
   border-radius: var(--radius);
-  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42), 0 10px 28px rgba(36, 60, 76, 0.1);
+  backdrop-filter: blur(18px) saturate(150%);
 }
 
 .icon-button {
-  width: 42px;
-  height: 42px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
   color: var(--accent);
   font-weight: 700;
 }
 
+.nav-glyph {
+  position: relative;
+  z-index: 1;
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
 .sync-dot {
-  color: var(--accent-soft);
+  color: var(--accent);
 }
 
 .theme-dot {
-  color: var(--accent);
+  overflow: hidden;
+  color: transparent;
+}
+
+.theme-dot::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 7px;
+  background: var(--glass-highlight);
+  pointer-events: none;
+}
+
+.theme-glyph {
+  position: relative;
+  width: 17px;
+  height: 17px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffffff 0%, #cfcfcf 52%, #545454 100%);
+  box-shadow: 0 0 18px rgba(207, 207, 207, 0.7);
+}
+
+.theme-dot[data-mode="night"] .theme-glyph {
+  background: linear-gradient(135deg, #252525 0%, #7d7d7d 58%, #f1f1ef 100%);
 }
 
 .paper-card {
@@ -193,10 +235,9 @@ h2 {
   margin-top: 18px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: linear-gradient(135deg, rgba(109, 168, 255, 0.08), transparent 34%), var(--panel);
-  background-position: 28px 0, 0 15px, 0 0;
-  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(18px);
+  background: var(--glass-highlight), var(--panel);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46), 0 22px 54px rgba(36, 60, 76, 0.12);
+  backdrop-filter: blur(22px) saturate(155%);
 }
 
 .capture-card {
@@ -265,7 +306,7 @@ textarea::placeholder {
 
 .segment.is-active {
   background: var(--button-active);
-  color: #06101f;
+  color: var(--active-ink);
   font-weight: 700;
 }
 
@@ -275,8 +316,9 @@ textarea::placeholder {
   border: 0;
   border-radius: var(--radius);
   background: var(--button-active);
-  color: #06101f;
+  color: var(--active-ink);
   font-weight: 650;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42), 0 12px 26px rgba(82, 137, 173, 0.22);
 }
 
 .quick-row {
@@ -382,6 +424,8 @@ textarea::placeholder {
   background: var(--field);
   color: var(--ink);
   padding: 0 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  backdrop-filter: blur(16px) saturate(145%);
 }
 
 .note-item,
@@ -389,8 +433,9 @@ textarea::placeholder {
 .book-item {
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--panel);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  background: var(--glass-highlight), var(--panel);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 12px 28px rgba(36, 60, 76, 0.1);
+  backdrop-filter: blur(18px) saturate(145%);
 }
 
 .note-item {
@@ -576,7 +621,7 @@ textarea::placeholder {
 .form-actions button[type="submit"] {
   border: 0;
   background: var(--button-active);
-  color: #06101f;
+  color: var(--active-ink);
   font-weight: 650;
 }
 
@@ -694,7 +739,7 @@ textarea::placeholder {
   border: 0;
   border-radius: var(--radius);
   background: var(--button-active);
-  color: #06101f;
+  color: var(--active-ink);
   font-weight: 650;
 }
 
@@ -739,7 +784,7 @@ textarea::placeholder {
 
 .tab.is-active {
   background: var(--button-active);
-  color: #06101f;
+  color: var(--active-ink);
   font-weight: 700;
 }
 

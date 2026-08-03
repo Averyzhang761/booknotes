@@ -1,23 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="panel" x1="86" y1="70" x2="426" y2="456" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#182235"/>
-      <stop offset="1" stop-color="#0b1018"/>
+      <stop stop-color="#ffffff" stop-opacity=".9"/>
+      <stop offset=".52" stop-color="#fbfbfa" stop-opacity=".68"/>
+      <stop offset="1" stop-color="#acbcbf" stop-opacity=".52"/>
     </linearGradient>
     <linearGradient id="beam" x1="146" y1="118" x2="366" y2="382" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8ed7ff"/>
-      <stop offset="1" stop-color="#5c9dff"/>
+      <stop stop-color="#f1f1ef"/>
+      <stop offset=".55" stop-color="#7d7d7d"/>
+      <stop offset="1" stop-color="#252525"/>
     </linearGradient>
     <filter id="softShadow" x="54" y="46" width="404" height="432" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#000000" flood-opacity=".42"/>
+      <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#252525" flood-opacity=".16"/>
     </filter>
   </defs>
 
-  <rect width="512" height="512" rx="116" fill="#080b10"/>
+  <rect width="512" height="512" rx="116" fill="#fbfbfa"/>
+  <rect width="512" height="512" rx="116" fill="#252525" opacity=".06"/>
   <path d="M112 98c0-18 14-32 32-32h224c18 0 32 14 32 32v316c0 18-14 32-32 32H144c-18 0-32-14-32-32V98Z" fill="url(#panel)" filter="url(#softShadow)"/>
-  <path d="M144 66h224c18 0 32 14 32 32v316c0 18-14 32-32 32H144c-18 0-32-14-32-32V98c0-18 14-32 32-32Z" fill="none" stroke="#6da8ff" stroke-width="10"/>
-  <path d="M160 118h192M160 176h150M160 234h192M160 292h116" stroke="#d7e0ea" stroke-width="14" stroke-linecap="round" opacity=".84"/>
+  <path d="M144 66h224c18 0 32 14 32 32v316c0 18-14 32-32 32H144c-18 0-32-14-32-32V98c0-18 14-32 32-32Z" fill="none" stroke="#545454" stroke-width="10" opacity=".82"/>
+  <path d="M160 118h192M160 176h150M160 234h192M160 292h116" stroke="#252525" stroke-width="14" stroke-linecap="round" opacity=".68"/>
   <path d="M332 66v122l-32-24-32 24V66h64Z" fill="url(#beam)"/>
-  <circle cx="162" cy="356" r="11" fill="#8ed7ff"/>
-  <path d="M196 356h120" stroke="#6da8ff" stroke-width="13" stroke-linecap="round"/>
+  <circle cx="162" cy="356" r="11" fill="#7d7d7d"/>
+  <path d="M196 356h120" stroke="#545454" stroke-width="13" stroke-linecap="round"/>
 </svg>
