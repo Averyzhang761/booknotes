@@ -89,19 +89,23 @@ function inferType(text) {
   const hasQuoteMarks = /^[“"「『《]/.test(trimmed) || /[”"」』]$/.test(trimmed);
   const longSingleParagraph = trimmed.length > 45 && !/(我觉得|想到|也许|可能|为什么)/.test(trimmed);
   if (hasQuoteMarks || longSingleParagraph) return "摘句";
-  if (trimmed.length <= 18) return "random";
+  if (trimmed.length <= 18) return "随想";
   return "体会";
 }
 
 function setType(type) {
-  selectedType = type;
-  detectedType.textContent = type;
-  segments.forEach((segment) => segment.classList.toggle("is-active", segment.dataset.type === type));
+  selectedType = normalizeNoteType(type);
+  detectedType.textContent = selectedType;
+  segments.forEach((segment) => segment.classList.toggle("is-active", segment.dataset.type === selectedType));
 }
 
 function chooseType(type) {
   typeLocked = true;
-  setType(type);
+  setType(normalizeNoteType(type));
+}
+
+function normalizeNoteType(type) {
+  return type === "random" ? "随想" : type;
 }
 
 function updateInputMeta() {
@@ -144,7 +148,7 @@ async function loadCloudData() {
   state.notes = notesResult.data.map((note) => ({
     id: note.id,
     bookId: note.book_id,
-    type: note.type,
+    type: normalizeNoteType(note.type),
     text: note.text,
     source: note.source || "manual",
     externalId: note.external_id,
@@ -281,7 +285,7 @@ function renderNotes(bookId) {
     ? notes.filter((note) => note.source === "weread")
     : notes.filter((note) => note.source !== "weread");
   if (!visibleNotes.length) {
-    const message = activeNoteView === "weread" ? "这本书还没有微信输入。" : "这本书还没有我的笔记。";
+    const message = activeNoteView === "weread" ? "这本书还没有微信导入。" : "这本书还没有我的笔记。";
     notesList.innerHTML = `<div class="empty">${message}</div>`;
     return;
   }

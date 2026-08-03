@@ -12,7 +12,7 @@ create table if not exists public.notes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   book_id uuid not null references public.books(id) on delete cascade,
-  type text not null check (type in ('体会', '摘句', 'random')),
+  type text not null check (type in ('体会', '摘句', '随想', 'random')),
   text text not null,
   source text not null default 'manual',
   external_id text,
@@ -23,6 +23,8 @@ alter table public.books add column if not exists source text not null default '
 alter table public.books add column if not exists external_id text;
 alter table public.notes add column if not exists source text not null default 'manual';
 alter table public.notes add column if not exists external_id text;
+alter table public.notes drop constraint if exists notes_type_check;
+alter table public.notes add constraint notes_type_check check (type in ('体会', '摘句', '随想', 'random'));
 
 drop index if exists public.books_user_source_external_idx;
 drop index if exists public.notes_user_source_external_idx;
