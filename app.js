@@ -414,6 +414,7 @@ async function addBook(event) {
     return;
   }
   const author = bookAuthorInput.value.trim() || "未填写";
+  const wereadBook = selectedWereadBook;
   const row = selectedWereadBook
     ? {
       user_id: state.session.user.id,
@@ -433,14 +434,15 @@ async function addBook(event) {
     return;
   }
 
-  state.books.unshift({
+  const savedBook = {
     id: data.id,
     title: data.title,
     author: data.author,
     source: data.source,
     externalId: data.external_id,
     createdAt: data.created_at,
-  });
+  };
+  state.books.unshift(savedBook);
   state.currentBookId = data.id;
   prefs.currentBookId = data.id;
   savePrefs();
@@ -448,6 +450,10 @@ async function addBook(event) {
   render();
   showToast(`当前书已切到《${title}》`);
   setView("capture");
+  if (wereadBook) {
+    wereadStatus.textContent = "正在导入这本书的微信笔记...";
+    await importWereadNotesForBook(savedBook);
+  }
 }
 
 async function searchWereadBook() {
@@ -672,12 +678,18 @@ async function importCurrentWereadNotes() {
     return;
   }
 
-  wereadStatus.textContent = "正在拉取当前书划线...";
-  const data = await invokeWeread({ action: "bookmarks", bookId: book.externalId });
-  if (!data) return;
+  await importWereadNotesForBook(book);
+}
 
-  const marks = data.updated || [];
-  const rows = marks
+async function importWereadNotesForBook(book) {
+  wereadStatus.textContent = "正在拉取当前书微信笔记...";
+  const bookmarksData = await invokeWeread({ action: "bookmarks", bookId: book.externalId });
+  if (!bookmarksData) return;
+  const reviewsData = await invokeWeread({ action: "reviews", bookId: book.externalId, count: 100 });
+  if (!reviewsData) return;
+
+  const marks = bookmarksData.updated || [];
+  const bookmarkRows = marks
     .filter((mark) => mark.markText)
     .map((mark) => ({
       user_id: state.session.user.id,
@@ -687,20 +699,37 @@ async function importCurrentWereadNotes() {
       source: "weread",
       external_id: mark.bookmarkId,
     }));
+  const reviewRows = (reviewsData.reviews || [])
+    .map((item) => item.review || item)
+    .filter((review) => review.content)
+    .map((review) => {
+      const text = review.abstract
+        ? `原文：${review.abstract}\n想法：${review.content}`
+        : review.content;
+      return {
+        user_id: state.session.user.id,
+        book_id: book.id,
+        type: "体会",
+        text,
+        source: "weread",
+        external_id: `review:${review.reviewId || `${review.createTime || "0"}-${review.range || text.slice(0, 24)}`}`,
+      };
+    });
+  const rows = [...bookmarkRows, ...reviewRows];
 
   if (!rows.length) {
-    wereadStatus.textContent = "当前书没有可导入划线";
+    wereadStatus.textContent = "当前书没有可导入微信笔记";
     return;
   }
 
   const { error } = await db.from("notes").upsert(rows, { onConflict: "user_id,source,external_id" });
   if (error) {
-    showDbError("划线写入失败", error);
+    showDbError("微信笔记写入失败", error);
     return;
   }
 
   await loadCloudData();
-  wereadStatus.textContent = `已导入 ${rows.length} 条当前书划线`;
+  wereadStatus.textContent = `已导入 ${rows.length} 条当前书微信笔记`;
 }
 
 function showDbError(prefix, error) {
