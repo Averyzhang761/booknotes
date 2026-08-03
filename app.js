@@ -16,6 +16,7 @@ let selectedType = "体会";
 let typeLocked = false;
 let pasteTimer;
 let toastTimer;
+let swipedBookId = null;
 
 const views = document.querySelectorAll(".app-page");
 const tabs = document.querySelectorAll(".tab");
@@ -284,12 +285,15 @@ function renderBooks() {
       const count = state.notes.filter((note) => note.bookId === book.id).length;
       const active = book.id === state.currentBookId ? "当前" : "切换";
       return `
-        <article class="book-item">
-          <div>
-            <div class="book-title">${escapeHtml(book.title)}</div>
-            <div class="book-meta">${escapeHtml(book.author)} · ${count} 条</div>
+        <article class="book-swipe ${book.id === swipedBookId ? "is-open" : ""}" data-swipe-book="${escapeHtml(book.id)}">
+          <button class="delete-book" type="button" data-delete-book="${escapeHtml(book.id)}">删除</button>
+          <div class="book-item" data-book-card="${escapeHtml(book.id)}">
+            <div>
+              <div class="book-title">${escapeHtml(book.title)}</div>
+              <div class="book-meta">${escapeHtml(book.author)} · ${count} 条</div>
+            </div>
+            <button type="button" data-book="${escapeHtml(book.id)}">${active}</button>
           </div>
-          <button type="button" data-book="${escapeHtml(book.id)}">${active}</button>
         </article>
       `;
     })
@@ -595,14 +599,67 @@ segments.forEach((segment) => {
 });
 
 bookList.addEventListener("click", (event) => {
+  const deleteButton = event.target.closest("[data-delete-book]");
+  if (deleteButton) {
+    deleteBook(deleteButton.dataset.deleteBook);
+    return;
+  }
+
   const button = event.target.closest("[data-book]");
   if (!button) return;
   state.currentBookId = button.dataset.book;
+  swipedBookId = null;
   prefs.currentBookId = state.currentBookId;
   savePrefs();
   render();
   setView("capture");
 });
+
+bookList.addEventListener("pointerdown", (event) => {
+  const card = event.target.closest("[data-book-card]");
+  if (!card) return;
+  card.dataset.startX = String(event.clientX);
+  card.dataset.startY = String(event.clientY);
+});
+
+bookList.addEventListener("pointerup", (event) => {
+  const card = event.target.closest("[data-book-card]");
+  if (!card?.dataset.startX) return;
+
+  const deltaX = event.clientX - Number(card.dataset.startX);
+  const deltaY = event.clientY - Number(card.dataset.startY);
+  delete card.dataset.startX;
+  delete card.dataset.startY;
+
+  if (Math.abs(deltaY) > 30 || Math.abs(deltaX) < 48) return;
+  swipedBookId = deltaX < 0 ? card.dataset.bookCard : null;
+  renderBooks();
+});
+
+async function deleteBook(bookId) {
+  const book = state.books.find((item) => item.id === bookId);
+  if (!book) return;
+  const count = state.notes.filter((note) => note.bookId === bookId).length;
+  const ok = confirm(`删除《${book.title}》？这会同时删除这本书下的 ${count} 条笔记。`);
+  if (!ok) return;
+
+  const { error } = await db.from("books").delete().eq("id", bookId);
+  if (error) {
+    showToast(`删除本书失败: ${error.message}`);
+    return;
+  }
+
+  state.books = state.books.filter((item) => item.id !== bookId);
+  state.notes = state.notes.filter((note) => note.bookId !== bookId);
+  if (state.currentBookId === bookId) {
+    state.currentBookId = state.books[0]?.id || null;
+    prefs.currentBookId = state.currentBookId;
+    savePrefs();
+  }
+  swipedBookId = null;
+  render();
+  showToast("已删除本书");
+}
 
 notesList.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-delete]");

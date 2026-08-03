@@ -277,6 +277,7 @@ textarea::placeholder {
 }
 
 .note-item,
+.book-swipe,
 .book-item {
   border: 1px solid rgba(87, 111, 109, 0.14);
   border-radius: var(--radius);
@@ -320,12 +321,37 @@ textarea::placeholder {
   text-align: center;
 }
 
+.book-swipe {
+  position: relative;
+  overflow: hidden;
+  background: rgba(154, 91, 100, 0.14);
+}
+
 .book-item {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: 74px;
   padding: 12px;
+  border: 0;
+  box-shadow: none;
+  transition: transform 180ms ease;
+}
+
+.book-swipe.is-open .book-item {
+  transform: translateX(-82px);
+}
+
+.delete-book {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 82px;
+  border: 0;
+  background: var(--red);
+  color: white;
+  font-weight: 650;
 }
 
 .book-title {
