@@ -395,24 +395,28 @@ function escapeHtml(value) {
 }
 
 async function pasteFromClipboard() {
-  noteInput.focus();
-  if (!navigator.clipboard?.readText) {
-    showToast("手机浏览器不支持按钮粘贴，请长按输入框粘贴");
-    return;
-  }
-
   try {
-    const text = await navigator.clipboard.readText();
+    const text = await readClipboardText();
     if (!text) {
       showToast("剪贴板为空");
       return;
     }
+    noteInput.focus();
     insertIntoNoteInput(text);
     updateInputMeta();
+    maybeAutoSavePaste();
     showToast("已粘贴");
   } catch {
-    showToast("读取剪贴板失败，请长按输入框粘贴");
+    noteInput.focus();
+    showToast("已定位输入框，请点系统粘贴");
   }
+}
+
+async function readClipboardText() {
+  if (navigator.clipboard?.readText) {
+    return navigator.clipboard.readText();
+  }
+  throw new Error("Clipboard API unavailable");
 }
 
 function insertIntoNoteInput(text) {
