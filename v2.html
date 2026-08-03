@@ -4,61 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f4f5ef" />
-    <title>Booknotes 阅读收件箱</title>
-    <link rel="stylesheet" href="./styles.css?v=20260803-6" />
+    <meta http-equiv="refresh" content="0; url=./index.html" />
+    <title>Booknotes</title>
+    <link rel="stylesheet" href="./styles.css?v=20260803-12" />
   </head>
   <body>
-    <main class="phone-shell" aria-label="阅读收件箱">
-      <section class="app-page bridge-page" data-bridge-view="inbox">
+    <main class="phone-shell" aria-label="Booknotes">
+      <section class="app-page">
         <header class="topbar">
-          <button class="icon-button" type="button" id="bridgeRefresh" aria-label="刷新">刷</button>
+          <button class="icon-button" type="button" onclick="location.href='./index.html'" aria-label="返回">返</button>
           <div>
-            <p class="kicker" id="bridgeStatus">云端未连接</p>
-            <h1>阅读收件箱</h1>
+            <p class="kicker">正在返回主笔记</p>
+            <h1>Booknotes</h1>
           </div>
-          <button class="icon-button sync-dot" type="button" id="bridgeSettings" aria-label="设置">设</button>
         </header>
-
-        <section class="paper-card sync-card" id="bridgeAuth">
-          <p class="sync-status" id="bridgeAuthStatus">登录后同步微信读书内容。</p>
-          <button type="button" class="google-button" id="bridgeGoogle">用 Google 登录</button>
-          <button type="button" class="signout-button is-hidden" id="bridgeSignOut">退出登录</button>
-        </section>
-
-        <section class="paper-card sync-card" id="bridgeSync">
-          <p class="sync-status" id="bridgeSyncStatus">微信读书未同步</p>
-          <div class="sync-grid">
-            <button type="button" id="bridgeImportShelf">书架候选</button>
-            <button type="button" id="bridgeImportBooks">已发生</button>
-            <button type="button" id="bridgeImportMarks">当前书</button>
-          </div>
-          <p class="sync-foot">把高熵书架筛成真正发生过阅读关系的书，再复制成通用 Markdown。</p>
-        </section>
-
-        <section class="section-head">
-          <h2 id="bridgeListTitle">候选</h2>
-          <button type="button" id="bridgeCopyQueue">复制</button>
-        </section>
-
-        <section class="notes-list" id="bridgeList" aria-live="polite"></section>
       </section>
-
-      <nav class="bottom-tabs" aria-label="阅读收件箱导航">
-        <button type="button" class="tab is-active" data-bridge-target="inbox">
-          <span>候选</span>
-        </button>
-        <button type="button" class="tab" data-bridge-target="active">
-          <span>已发生</span>
-        </button>
-        <button type="button" class="tab" data-bridge-target="queue">
-          <span>待整理</span>
-        </button>
-      </nav>
-      <p class="toast" id="bridgeToast" role="status" aria-live="polite"></p>
     </main>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./config.js?v=20260803"></script>
-    <script src="./v2.js?v=20260803-3"></script>
   </body>
 </html>
