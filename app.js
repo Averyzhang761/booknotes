@@ -1,6 +1,5 @@
 const prefsKey = "paper-booknotes-prefs-v1";
 const hiddenWereadAuthor = "__BOOKNOTES_HIDDEN__";
-const makeId = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 const config = window.READING_NOTES_CONFIG || {};
 const canUseCloud = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
@@ -50,6 +49,24 @@ const signOut = document.querySelector("#signOut");
 const syncStatus = document.querySelector("#syncStatus");
 const wereadStatus = document.querySelector("#wereadStatus");
 const toast = document.querySelector("#toast");
+const saveNoteButton = document.querySelector("#saveNote");
+const pasteButton = document.querySelector("#pasteButton");
+const quoteWrapButton = document.querySelector("#quoteWrap");
+const clearInputButton = document.querySelector("#clearInput");
+const bookSwitchButton = document.querySelector("#bookSwitch");
+const batchBooksButton = document.querySelector("#batchBooks");
+const cancelBatchBooksButton = document.querySelector("#cancelBatchBooks");
+const toggleSelectBooksButton = document.querySelector("#toggleSelectBooks");
+const deleteSelectedBooksButton = document.querySelector("#deleteSelectedBooks");
+const addBookButton = document.querySelector("#addBook");
+const cancelBookButton = document.querySelector("#cancelBook");
+const searchWereadBookButton = document.querySelector("#searchWereadBook");
+const exportNotesButton = document.querySelector("#exportNotes");
+const syncOpenButton = document.querySelector("#syncOpen");
+const syncCloseButton = document.querySelector("#syncClose");
+const importWereadShelfButton = document.querySelector("#importWereadShelf");
+const importWereadNotebooksButton = document.querySelector("#importWereadNotebooks");
+const importCurrentWereadNotesButton = document.querySelector("#importCurrentWereadNotes");
 
 function loadPrefs() {
   try {
@@ -258,7 +275,7 @@ function render() {
   bulkCount.textContent = `已选 ${selectedBookIds.size} 本`;
   const visibleIds = visibleBooks().map((book) => book.id);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedBookIds.has(id));
-  document.querySelector("#toggleSelectBooks").textContent = allVisibleSelected ? "取消全选" : "全选";
+  toggleSelectBooksButton.textContent = allVisibleSelected ? "取消全选" : "全选";
   noteTabs.forEach((tab) => tab.classList.toggle("is-active", tab.dataset.noteView === activeNoteView));
   renderNotes(book?.id);
   renderBooks();
@@ -938,10 +955,10 @@ noteInput.addEventListener("keydown", (event) => {
   }
 });
 
-document.querySelector("#saveNote").addEventListener("click", saveNote);
-document.querySelector("#pasteButton").addEventListener("click", pasteFromClipboard);
-document.querySelector("#quoteWrap").addEventListener("click", wrapAsQuote);
-document.querySelector("#clearInput").addEventListener("click", () => {
+saveNoteButton.addEventListener("click", saveNote);
+pasteButton.addEventListener("click", pasteFromClipboard);
+quoteWrapButton.addEventListener("click", wrapAsQuote);
+clearInputButton.addEventListener("click", () => {
   noteInput.value = "";
   typeLocked = false;
   setType("体会");
@@ -955,7 +972,7 @@ autoSavePaste.addEventListener("change", () => {
   showToast(autoSavePaste.checked ? "已开启粘贴后自动存下" : "已关闭自动存下");
   noteInput.focus();
 });
-document.querySelector("#bookSwitch").addEventListener("click", () => setView("books"));
+bookSwitchButton.addEventListener("click", () => setView("books"));
 bookSearch.addEventListener("input", () => {
   bookSearchQuery = bookSearch.value;
   swipedBookId = null;
@@ -965,17 +982,17 @@ bookTitleInput.addEventListener("input", () => {
   selectedWereadBook = null;
   wereadSearchResults.querySelectorAll(".weread-result").forEach((item) => item.classList.remove("is-selected"));
 });
-document.querySelector("#batchBooks").addEventListener("click", () => {
+batchBooksButton.addEventListener("click", () => {
   batchMode = true;
   swipedBookId = null;
   render();
 });
-document.querySelector("#cancelBatchBooks").addEventListener("click", () => {
+cancelBatchBooksButton.addEventListener("click", () => {
   batchMode = false;
   selectedBookIds.clear();
   render();
 });
-document.querySelector("#toggleSelectBooks").addEventListener("click", () => {
+toggleSelectBooksButton.addEventListener("click", () => {
   const ids = visibleBooks().map((book) => book.id);
   const allSelected = ids.length > 0 && ids.every((id) => selectedBookIds.has(id));
   ids.forEach((id) => {
@@ -987,20 +1004,20 @@ document.querySelector("#toggleSelectBooks").addEventListener("click", () => {
   });
   render();
 });
-document.querySelector("#deleteSelectedBooks").addEventListener("click", deleteSelectedBooks);
-document.querySelector("#addBook").addEventListener("click", openBookForm);
-document.querySelector("#cancelBook").addEventListener("click", closeBookForm);
-document.querySelector("#searchWereadBook").addEventListener("click", searchWereadBook);
+deleteSelectedBooksButton.addEventListener("click", deleteSelectedBooks);
+addBookButton.addEventListener("click", openBookForm);
+cancelBookButton.addEventListener("click", closeBookForm);
+searchWereadBookButton.addEventListener("click", searchWereadBook);
 bookForm.addEventListener("submit", addBook);
 authForm.addEventListener("submit", sendLoginLink);
 googleLogin.addEventListener("click", signInWithGoogle);
 signOut.addEventListener("click", signOutUser);
-document.querySelector("#exportNotes").addEventListener("click", exportNotes);
-document.querySelector("#syncOpen").addEventListener("click", () => setView("sync"));
-document.querySelector("#syncClose").addEventListener("click", () => setView("capture"));
-document.querySelector("#importWereadShelf").addEventListener("click", importWereadShelf);
-document.querySelector("#importWereadNotebooks").addEventListener("click", importWereadNotebooks);
-document.querySelector("#importCurrentWereadNotes").addEventListener("click", importCurrentWereadNotes);
+exportNotesButton.addEventListener("click", exportNotes);
+syncOpenButton.addEventListener("click", () => setView("sync"));
+syncCloseButton.addEventListener("click", () => setView("capture"));
+importWereadShelfButton.addEventListener("click", importWereadShelf);
+importWereadNotebooksButton.addEventListener("click", importWereadNotebooks);
+importCurrentWereadNotesButton.addEventListener("click", importCurrentWereadNotes);
 
 async function init() {
   render();
