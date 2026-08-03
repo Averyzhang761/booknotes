@@ -441,9 +441,19 @@ async function invokeWeread(body) {
     setView("sync");
     return null;
   }
-  const { data, error } = await db.functions.invoke("weread-gateway", { body });
-  if (error || data?.error) {
-    const message = data?.error || (await readFunctionError(error)) || error?.message || "微信读书同步失败";
+  const result = await fetch(`${config.supabaseUrl}/functions/v1/weread-gateway`, {
+    method: "POST",
+    headers: {
+      apikey: config.supabaseAnonKey,
+      Authorization: `Bearer ${state.session.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await readJsonResponse(result);
+
+  if (!result.ok || data?.error) {
+    const message = data?.error || data?.msg || data?.message || `微信读书同步失败：HTTP ${result.status}`;
     wereadStatus.textContent = message;
     showToast(message);
     return null;
@@ -451,18 +461,15 @@ async function invokeWeread(body) {
   return data;
 }
 
-async function readFunctionError(error) {
-  const response = error?.context;
-  if (!response) return null;
-
+async function readJsonResponse(response) {
   try {
-    const body = await response.clone().json();
-    return body.error || body.msg || body.message || JSON.stringify(body);
+    return await response.clone().json();
   } catch {
     try {
-      return await response.clone().text();
+      const text = await response.clone().text();
+      return text ? { message: text } : {};
     } catch {
-      return null;
+      return {};
     }
   }
 }
