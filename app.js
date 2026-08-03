@@ -13,6 +13,7 @@ let state = {
   notes: [],
 };
 let selectedType = "体会";
+let typeLocked = false;
 let pasteTimer;
 let toastTimer;
 
@@ -86,10 +87,17 @@ function setType(type) {
   segments.forEach((segment) => segment.classList.toggle("is-active", segment.dataset.type === type));
 }
 
+function chooseType(type) {
+  typeLocked = true;
+  setType(type);
+}
+
 function updateInputMeta() {
   const text = noteInput.value;
   wordCount.textContent = `${text.trim().length} 字`;
-  setType(inferType(text));
+  if (!typeLocked) {
+    setType(inferType(text));
+  }
 }
 
 async function loadCloudData() {
@@ -206,6 +214,8 @@ async function saveNote() {
   });
   noteInput.value = "";
   selectedType = "体会";
+  typeLocked = false;
+  setType(selectedType);
   render();
   updateInputMeta();
   showToast(`已存到《${book.title}》`);
@@ -311,7 +321,7 @@ function wrapAsQuote() {
   const text = noteInput.value.trim();
   if (!text) return;
   noteInput.value = `「${text.replace(/^「|」$/g, "")}」`;
-  setType("摘句");
+  chooseType("摘句");
   updateInputMeta();
   noteInput.focus();
 }
@@ -581,7 +591,7 @@ tabs.forEach((tab) => {
 });
 
 segments.forEach((segment) => {
-  segment.addEventListener("click", () => setType(segment.dataset.type));
+  segment.addEventListener("click", () => chooseType(segment.dataset.type));
 });
 
 bookList.addEventListener("click", (event) => {
@@ -626,6 +636,8 @@ document.querySelector("#pasteButton").addEventListener("click", pasteFromClipbo
 document.querySelector("#quoteWrap").addEventListener("click", wrapAsQuote);
 document.querySelector("#clearInput").addEventListener("click", () => {
   noteInput.value = "";
+  typeLocked = false;
+  setType("体会");
   updateInputMeta();
   noteInput.focus();
 });
