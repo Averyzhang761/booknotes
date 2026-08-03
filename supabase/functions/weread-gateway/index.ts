@@ -63,6 +63,14 @@ function toWereadBody(body: Record<string, unknown>) {
       return { api_name: "/shelf/sync", skill_version: SKILL_VERSION };
     case "notebooks":
       return { api_name: "/user/notebooks", count: body.count || 100, skill_version: SKILL_VERSION };
+    case "search":
+      return {
+        api_name: "/store/search",
+        keyword: body.keyword,
+        scope: 10,
+        count: body.count || 8,
+        skill_version: SKILL_VERSION,
+      };
     case "bookmarks":
       return { api_name: "/book/bookmarklist", bookId: body.bookId, skill_version: SKILL_VERSION };
     case "reviews":

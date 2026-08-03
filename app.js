@@ -1,9 +1,10 @@
 const prefsKey = "paper-booknotes-prefs-v1";
+const hiddenWereadAuthor = "__BOOKNOTES_HIDDEN__";
 const makeId = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 const config = window.READING_NOTES_CONFIG || {};
-const canUseSupabase = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
-const db = canUseSupabase ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey) : null;
+const canUseCloud = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
+const db = canUseCloud ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey) : null;
 
 let prefs = loadPrefs();
 let state = {
@@ -14,6 +15,10 @@ let state = {
 };
 let selectedType = "体会";
 let typeLocked = false;
+let bookSearchQuery = "";
+let batchMode = false;
+let selectedBookIds = new Set();
+let selectedWereadBook = null;
 let pasteTimer;
 let toastTimer;
 let swipedBookId = null;
@@ -30,8 +35,12 @@ const cloudStatus = document.querySelector("#cloudStatus");
 const segments = document.querySelectorAll(".segment");
 const autoSavePaste = document.querySelector("#autoSavePaste");
 const bookForm = document.querySelector("#bookForm");
+const bookSearch = document.querySelector("#bookSearch");
 const bookTitleInput = document.querySelector("#bookTitleInput");
 const bookAuthorInput = document.querySelector("#bookAuthorInput");
+const wereadSearchResults = document.querySelector("#wereadSearchResults");
+const bulkBar = document.querySelector("#bulkBar");
+const bulkCount = document.querySelector("#bulkCount");
 const authForm = document.querySelector("#authForm");
 const emailInput = document.querySelector("#emailInput");
 const googleLogin = document.querySelector("#googleLogin");
@@ -110,29 +119,33 @@ async function loadCloudData() {
   }
 
   const [booksResult, notesResult] = await Promise.all([
-    db.from("books").select("id,title,author,created_at").order("created_at", { ascending: false }),
-    db.from("notes").select("id,book_id,type,text,created_at").order("created_at", { ascending: false }),
+    db.from("books").select("id,title,author,source,external_id,created_at").order("created_at", { ascending: false }),
+    db.from("notes").select("id,book_id,type,text,source,external_id,created_at").order("created_at", { ascending: false }),
   ]);
 
   if (booksResult.error || notesResult.error) {
-    showToast("云端读取失败，请检查表结构和 RLS");
+    showToast("云端读取失败，请稍后再试");
     syncStatus.textContent = "云端读取失败";
     return;
   }
 
-  state.books = booksResult.data.map((book) => ({
-    id: book.id,
-    title: book.title,
-    author: book.author || "未填写",
-    source: book.source || "manual",
-    externalId: book.external_id,
-    createdAt: book.created_at,
-  }));
+  state.books = booksResult.data
+    .filter((book) => book.author !== hiddenWereadAuthor)
+    .map((book) => ({
+      id: book.id,
+      title: book.title,
+      author: book.author || "未填写",
+      source: book.source || "manual",
+      externalId: book.external_id,
+      createdAt: book.created_at,
+    }));
   state.notes = notesResult.data.map((note) => ({
     id: note.id,
     bookId: note.book_id,
     type: note.type,
     text: note.text,
+    source: note.source || "manual",
+    externalId: note.external_id,
     createdAt: note.created_at,
   }));
 
@@ -197,8 +210,8 @@ async function saveNote() {
 
   const { data, error } = await db
     .from("notes")
-    .insert({ book_id: book.id, type: selectedType, text })
-    .select("id,book_id,type,text,created_at")
+    .insert({ book_id: book.id, type: selectedType, text, source: "manual" })
+    .select("id,book_id,type,text,source,external_id,created_at")
     .single();
 
   if (error) {
@@ -211,6 +224,8 @@ async function saveNote() {
     bookId: data.book_id,
     type: data.type,
     text: data.text,
+    source: data.source || "manual",
+    externalId: data.external_id,
     createdAt: data.created_at,
   });
   noteInput.value = "";
@@ -229,17 +244,19 @@ function render() {
   cloudStatus.textContent = statusText();
   syncStatus.textContent = statusText();
   wereadStatus.textContent = state.session ? "可同步微信读书" : "登录后可同步微信读书";
-  authForm.classList.toggle("is-hidden", Boolean(state.session) || !canUseSupabase);
-  googleLogin.classList.toggle("is-hidden", Boolean(state.session) || !canUseSupabase);
+  authForm.classList.toggle("is-hidden", Boolean(state.session) || !canUseCloud);
+  googleLogin.classList.toggle("is-hidden", Boolean(state.session) || !canUseCloud);
   signOut.classList.toggle("is-hidden", !state.session);
+  bulkBar.classList.toggle("is-hidden", !batchMode);
+  bulkCount.textContent = `已选 ${selectedBookIds.size} 本`;
   renderNotes(book?.id);
   renderBooks();
 }
 
 function statusText() {
-  if (!canUseSupabase) return "需要配置 Supabase publishable key";
+  if (!canUseCloud) return "云端未配置";
   if (!state.session) return "未登录云端";
-  return `${state.session.user.email} · ${state.books.length} 本书 · ${state.notes.length} 条`;
+  return `已连接云端 · ${state.books.length} 本书 · ${state.notes.length} 条`;
 }
 
 function renderNotes(bookId) {
@@ -253,46 +270,78 @@ function renderNotes(bookId) {
     return;
   }
 
-  notesList.innerHTML = notes
-    .map((note) => {
-      const time = new Intl.DateTimeFormat("zh-CN", {
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(new Date(note.createdAt));
-      return `
-        <article class="note-item">
-          <div class="note-top">
-            <span class="note-type">${escapeHtml(note.type)}</span>
-            <span>${time} <button class="delete-note" type="button" data-delete="${escapeHtml(note.id)}">删除</button></span>
-          </div>
-          <div class="note-text">${escapeHtml(note.text)}</div>
-        </article>
-      `;
-    })
-    .join("");
+  const ownNotes = notes.filter((note) => note.source !== "weread");
+  const wereadNotes = notes.filter((note) => note.source === "weread");
+  notesList.innerHTML = [
+    renderNoteGroup("我的笔记", ownNotes, "primary"),
+    renderNoteGroup("微信读书辅助信息", wereadNotes, "auxiliary"),
+  ].join("");
+}
+
+function renderNoteGroup(title, notes, kind) {
+  if (!notes.length) return "";
+  return `
+    <section class="note-group ${kind === "auxiliary" ? "is-auxiliary" : ""}">
+      <div class="note-group-title">${title}</div>
+      ${notes.map((note) => renderNoteItem(note)).join("")}
+    </section>
+  `;
+}
+
+function renderNoteItem(note) {
+  const time = new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(note.createdAt));
+  const source = note.source === "weread" ? "微信读书" : note.type;
+  return `
+    <article class="note-item ${note.source === "weread" ? "is-auxiliary" : ""}">
+      <div class="note-top">
+        <span class="note-type">${escapeHtml(source)}</span>
+        <span>${time} <button class="delete-note" type="button" data-delete="${escapeHtml(note.id)}">删除</button></span>
+      </div>
+      <div class="note-text">${escapeHtml(note.text)}</div>
+    </article>
+  `;
 }
 
 function renderBooks() {
   if (!state.session) {
-    bookList.innerHTML = `<div class="empty">登录后书会保存在 Supabase。</div>`;
+    bookList.innerHTML = `<div class="empty">登录后书会保存在云端。</div>`;
     return;
   }
 
-  bookList.innerHTML = state.books
+  const query = bookSearchQuery.trim().toLowerCase();
+  const books = query
+    ? state.books.filter((book) => `${book.title} ${book.author}`.toLowerCase().includes(query))
+    : state.books;
+
+  if (!books.length) {
+    bookList.innerHTML = `<div class="empty">${query ? "没有匹配的书。" : "还没有书。"}</div>`;
+    return;
+  }
+
+  bookList.innerHTML = books
     .map((book) => {
       const count = state.notes.filter((note) => note.bookId === book.id).length;
+      const ownCount = state.notes.filter((note) => note.bookId === book.id && note.source !== "weread").length;
+      const auxCount = count - ownCount;
       const active = book.id === state.currentBookId ? "当前" : "切换";
+      const sourceLabel = book.source === "weread" ? "微信读书" : "手动添加";
+      const countLabel = auxCount ? `${ownCount} 条 + 微信 ${auxCount}` : `${ownCount} 条`;
+      const selected = selectedBookIds.has(book.id) ? "checked" : "";
       return `
         <article class="book-swipe ${book.id === swipedBookId ? "is-open" : ""}" data-swipe-book="${escapeHtml(book.id)}">
           <button class="delete-book" type="button" data-delete-book="${escapeHtml(book.id)}">删除</button>
           <div class="book-item" data-book-card="${escapeHtml(book.id)}">
+            ${batchMode ? `<input class="book-select" type="checkbox" data-select-book="${escapeHtml(book.id)}" ${selected} aria-label="选择 ${escapeHtml(book.title)}" />` : ""}
             <div>
               <div class="book-title">${escapeHtml(book.title)}</div>
-              <div class="book-meta">${escapeHtml(book.author)} · ${count} 条</div>
+              <div class="book-meta">${escapeHtml(book.author)} · ${sourceLabel} · ${countLabel}</div>
             </div>
-            <button type="button" data-book="${escapeHtml(book.id)}">${active}</button>
+            ${batchMode ? "" : `<button type="button" data-book="${escapeHtml(book.id)}">${active}</button>`}
           </div>
         </article>
       `;
@@ -342,6 +391,9 @@ function openBookForm() {
 
 function closeBookForm() {
   bookForm.reset();
+  selectedWereadBook = null;
+  wereadSearchResults.innerHTML = "";
+  wereadSearchResults.classList.add("is-hidden");
   bookForm.classList.add("is-hidden");
 }
 
@@ -353,11 +405,19 @@ async function addBook(event) {
     return;
   }
   const author = bookAuthorInput.value.trim() || "未填写";
-  const { data, error } = await db
-    .from("books")
-    .insert({ title, author, source: "manual" })
-    .select("id,title,author,source,external_id,created_at")
-    .single();
+  const row = selectedWereadBook
+    ? {
+      user_id: state.session.user.id,
+      title,
+      author,
+      source: "weread",
+      external_id: selectedWereadBook.bookId,
+    }
+    : { title, author, source: "manual" };
+  const query = selectedWereadBook
+    ? db.from("books").upsert(row, { onConflict: "user_id,source,external_id" })
+    : db.from("books").insert(row);
+  const { data, error } = await query.select("id,title,author,source,external_id,created_at").single();
 
   if (error) {
     showToast("加书失败，未写入云端");
@@ -381,11 +441,61 @@ async function addBook(event) {
   setView("capture");
 }
 
+async function searchWereadBook() {
+  const keyword = bookTitleInput.value.trim();
+  if (!keyword) {
+    bookTitleInput.focus();
+    return;
+  }
+
+  wereadSearchResults.classList.remove("is-hidden");
+  wereadSearchResults.innerHTML = `<div class="empty small">正在搜索微信读书...</div>`;
+  const data = await invokeWeread({ action: "search", keyword, count: 8 });
+  if (!data) return;
+
+  const books = parseWereadSearchBooks(data).slice(0, 8);
+  if (!books.length) {
+    wereadSearchResults.innerHTML = `<div class="empty small">没有找到匹配的微信读书书籍。</div>`;
+    return;
+  }
+
+  wereadSearchResults.innerHTML = books.map((book, index) => `
+    <button class="weread-result" type="button" data-weread-result="${index}">
+      <span>${escapeHtml(book.title)}</span>
+      <small>${escapeHtml(book.author || "未填写")}</small>
+    </button>
+  `).join("");
+  wereadSearchResults.dataset.results = JSON.stringify(books);
+}
+
+function parseWereadSearchBooks(data) {
+  return (data.results || [])
+    .flatMap((group) => group.books || [])
+    .map((item) => item.bookInfo || item)
+    .filter((book) => book.bookId && book.title)
+    .map((book) => ({
+      bookId: book.bookId,
+      title: book.title,
+      author: book.author || "未填写",
+    }));
+}
+
 function exportNotes() {
   const book = currentBook();
   if (!book) return;
   const notes = state.notes.filter((note) => note.bookId === book.id);
-  const markdown = [`# ${book.title}`, "", ...notes.map((note) => `## ${note.type}\n\n${note.text}\n`)].join("\n");
+  const ownNotes = notes.filter((note) => note.source !== "weread");
+  const wereadNotes = notes.filter((note) => note.source === "weread");
+  const markdown = [
+    `# ${book.title}`,
+    "",
+    "## 我的笔记",
+    "",
+    ...ownNotes.map((note) => `### ${note.type}\n\n${note.text}\n`),
+    wereadNotes.length ? "## 微信读书辅助信息" : "",
+    "",
+    ...wereadNotes.map((note) => `### 微信读书\n\n${note.text}\n`),
+  ].filter(Boolean).join("\n");
   navigator.clipboard?.writeText(markdown);
   showToast("已复制 Markdown");
 }
@@ -398,8 +508,8 @@ function maybeAutoSavePaste() {
 
 async function sendLoginLink(event) {
   event.preventDefault();
-  if (!canUseSupabase) {
-    showToast("先配置 Supabase publishable key");
+  if (!canUseCloud) {
+    showToast("云端未配置");
     return;
   }
   const email = emailInput.value.trim();
@@ -424,8 +534,8 @@ async function sendLoginLink(event) {
 }
 
 async function signInWithGoogle() {
-  if (!canUseSupabase) {
-    showToast("先配置 Supabase publishable key");
+  if (!canUseCloud) {
+    showToast("云端未配置");
     return;
   }
 
@@ -507,7 +617,7 @@ async function importWereadShelf() {
     return;
   }
 
-  const { error } = await db.from("books").upsert(rows, { onConflict: "user_id,source,external_id" });
+  const { error } = await db.from("books").upsert(rows, { onConflict: "user_id,source,external_id", ignoreDuplicates: true });
   if (error) {
     showDbError("书架写入失败", error);
     return;
@@ -536,7 +646,7 @@ async function importWereadNotebooks() {
     return;
   }
 
-  const { error } = await db.from("books").upsert(rows, { onConflict: "user_id,source,external_id" });
+  const { error } = await db.from("books").upsert(rows, { onConflict: "user_id,source,external_id", ignoreDuplicates: true });
   if (error) {
     showDbError("笔记本写入失败", error);
     return;
@@ -599,11 +709,24 @@ segments.forEach((segment) => {
 });
 
 bookList.addEventListener("click", (event) => {
+  const checkbox = event.target.closest("[data-select-book]");
+  if (checkbox) {
+    if (checkbox.checked) {
+      selectedBookIds.add(checkbox.dataset.selectBook);
+    } else {
+      selectedBookIds.delete(checkbox.dataset.selectBook);
+    }
+    render();
+    return;
+  }
+
   const deleteButton = event.target.closest("[data-delete-book]");
   if (deleteButton) {
     deleteBook(deleteButton.dataset.deleteBook);
     return;
   }
+
+  if (batchMode) return;
 
   const button = event.target.closest("[data-book]");
   if (!button) return;
@@ -616,6 +739,7 @@ bookList.addEventListener("click", (event) => {
 });
 
 bookList.addEventListener("pointerdown", (event) => {
+  if (batchMode) return;
   const card = event.target.closest("[data-book-card]");
   if (!card) return;
   card.dataset.startX = String(event.clientX);
@@ -623,6 +747,7 @@ bookList.addEventListener("pointerdown", (event) => {
 });
 
 bookList.addEventListener("pointerup", (event) => {
+  if (batchMode) return;
   const card = event.target.closest("[data-book-card]");
   if (!card?.dataset.startX) return;
 
@@ -636,6 +761,20 @@ bookList.addEventListener("pointerup", (event) => {
   renderBooks();
 });
 
+wereadSearchResults.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-weread-result]");
+  if (!button) return;
+  const books = JSON.parse(wereadSearchResults.dataset.results || "[]");
+  selectedWereadBook = books[Number(button.dataset.wereadResult)];
+  if (!selectedWereadBook) return;
+  bookTitleInput.value = selectedWereadBook.title;
+  bookAuthorInput.value = selectedWereadBook.author || "未填写";
+  wereadSearchResults.querySelectorAll(".weread-result").forEach((item) => {
+    item.classList.toggle("is-selected", item === button);
+  });
+  showToast("已填入微信读书书籍信息");
+});
+
 async function deleteBook(bookId) {
   const book = state.books.find((item) => item.id === bookId);
   if (!book) return;
@@ -643,22 +782,68 @@ async function deleteBook(bookId) {
   const ok = confirm(`删除《${book.title}》？这会同时删除这本书下的 ${count} 条笔记。`);
   if (!ok) return;
 
-  const { error } = await db.from("books").delete().eq("id", bookId);
-  if (error) {
-    showToast(`删除本书失败: ${error.message}`);
+  const okDelete = await deleteBookRows([bookId]);
+  if (!okDelete) return;
+
+  showToast("已删除本书");
+}
+
+async function deleteSelectedBooks() {
+  const ids = [...selectedBookIds].filter((id) => state.books.some((book) => book.id === id));
+  if (!ids.length) {
+    showToast("先选择要删除的书");
     return;
   }
+  const noteCount = state.notes.filter((note) => ids.includes(note.bookId)).length;
+  const ok = confirm(`删除选中的 ${ids.length} 本书？这会同时删除 ${noteCount} 条笔记。`);
+  if (!ok) return;
 
-  state.books = state.books.filter((item) => item.id !== bookId);
-  state.notes = state.notes.filter((note) => note.bookId !== bookId);
-  if (state.currentBookId === bookId) {
+  const okDelete = await deleteBookRows(ids);
+  if (!okDelete) return;
+
+  batchMode = false;
+  selectedBookIds.clear();
+  showToast(`已删除 ${ids.length} 本书`);
+}
+
+async function deleteBookRows(bookIds) {
+  const books = state.books.filter((book) => bookIds.includes(book.id));
+  const { error: notesError } = await db.from("notes").delete().in("book_id", bookIds);
+  if (notesError) {
+    showToast(`删除笔记失败: ${notesError.message}`);
+    return false;
+  }
+
+  const wereadIds = books.filter((book) => book.source === "weread").map((book) => book.id);
+  const manualIds = books.filter((book) => book.source !== "weread").map((book) => book.id);
+
+  if (wereadIds.length) {
+    const { error } = await db.from("books").update({ author: hiddenWereadAuthor }).in("id", wereadIds);
+    if (error) {
+      showToast(`删除本书失败: ${error.message}`);
+      return false;
+    }
+  }
+
+  if (manualIds.length) {
+    const { error } = await db.from("books").delete().in("id", manualIds);
+    if (error) {
+      showToast(`删除本书失败: ${error.message}`);
+      return false;
+    }
+  }
+
+  state.books = state.books.filter((item) => !bookIds.includes(item.id));
+  state.notes = state.notes.filter((note) => !bookIds.includes(note.bookId));
+  selectedBookIds = new Set([...selectedBookIds].filter((id) => !bookIds.includes(id)));
+  if (bookIds.includes(state.currentBookId)) {
     state.currentBookId = state.books[0]?.id || null;
     prefs.currentBookId = state.currentBookId;
     savePrefs();
   }
   swipedBookId = null;
   render();
-  showToast("已删除本书");
+  return true;
 }
 
 notesList.addEventListener("click", async (event) => {
@@ -706,8 +891,29 @@ autoSavePaste.addEventListener("change", () => {
   noteInput.focus();
 });
 document.querySelector("#bookSwitch").addEventListener("click", () => setView("books"));
+bookSearch.addEventListener("input", () => {
+  bookSearchQuery = bookSearch.value;
+  swipedBookId = null;
+  renderBooks();
+});
+bookTitleInput.addEventListener("input", () => {
+  selectedWereadBook = null;
+  wereadSearchResults.querySelectorAll(".weread-result").forEach((item) => item.classList.remove("is-selected"));
+});
+document.querySelector("#batchBooks").addEventListener("click", () => {
+  batchMode = true;
+  swipedBookId = null;
+  render();
+});
+document.querySelector("#cancelBatchBooks").addEventListener("click", () => {
+  batchMode = false;
+  selectedBookIds.clear();
+  render();
+});
+document.querySelector("#deleteSelectedBooks").addEventListener("click", deleteSelectedBooks);
 document.querySelector("#addBook").addEventListener("click", openBookForm);
 document.querySelector("#cancelBook").addEventListener("click", closeBookForm);
+document.querySelector("#searchWereadBook").addEventListener("click", searchWereadBook);
 bookForm.addEventListener("submit", addBook);
 authForm.addEventListener("submit", sendLoginLink);
 googleLogin.addEventListener("click", signInWithGoogle);
@@ -723,7 +929,7 @@ async function init() {
   render();
   updateInputMeta();
 
-  if (!canUseSupabase) {
+  if (!canUseCloud) {
     setView("sync");
     return;
   }

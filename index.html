@@ -10,7 +10,7 @@
     <title>读书笔记</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260803-4" />
+    <link rel="stylesheet" href="./styles.css?v=20260803-6" />
   </head>
   <body>
     <main class="phone-shell" aria-label="读书笔记应用">
@@ -71,8 +71,15 @@
       <section class="app-page is-hidden" data-view="books">
         <header class="plain-header">
           <h2>书</h2>
-          <button type="button" class="text-button" id="addBook">加一本</button>
+          <div class="header-actions">
+            <button type="button" class="text-button" id="batchBooks">批量</button>
+            <button type="button" class="text-button" id="addBook">加一本</button>
+          </div>
         </header>
+        <label class="search-field">
+          <span>筛选书</span>
+          <input id="bookSearch" type="search" autocomplete="off" placeholder="搜索书名或作者" />
+        </label>
         <form class="paper-card book-form is-hidden" id="bookForm">
           <label>
             <span>书名</span>
@@ -84,9 +91,18 @@
           </label>
           <div class="form-actions">
             <button type="button" id="cancelBook">取消</button>
+            <button type="button" id="searchWereadBook">微信匹配</button>
             <button type="submit">设为当前书</button>
           </div>
+          <section class="weread-search-results is-hidden" id="wereadSearchResults" aria-live="polite"></section>
         </form>
+        <section class="bulk-bar is-hidden" id="bulkBar">
+          <span id="bulkCount">已选 0 本</span>
+          <div>
+            <button type="button" id="cancelBatchBooks">取消</button>
+            <button type="button" id="deleteSelectedBooks">删除</button>
+          </div>
+        </section>
         <section class="book-list" id="bookList"></section>
       </section>
 
@@ -106,7 +122,7 @@
             <button type="submit">发送登录链接</button>
           </form>
           <button type="button" class="signout-button is-hidden" id="signOut">退出登录</button>
-          <p class="sync-foot">笔记会保存到 Supabase。代码可以公开，读书数据不进 GitHub。</p>
+          <p class="sync-foot">笔记会保存到你的云端账号。代码可以公开，读书数据不进 GitHub。</p>
         </section>
         <section class="paper-card sync-card">
           <p class="sync-status" id="wereadStatus">微信读书未同步</p>
@@ -115,7 +131,7 @@
             <button type="button" id="importWereadNotebooks">笔记本</button>
             <button type="button" id="importCurrentWereadNotes">当前书</button>
           </div>
-          <p class="sync-foot">微信读书通过 Supabase Edge Function 代理访问，密钥只放在 Supabase secrets。</p>
+          <p class="sync-foot">微信读书通过云端代理同步，密钥不会放进公开代码。</p>
         </section>
       </section>
 
@@ -135,6 +151,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./config.js?v=20260803"></script>
-    <script src="./app.js?v=20260803-4"></script>
+    <script src="./app.js?v=20260803-6"></script>
   </body>
 </html>

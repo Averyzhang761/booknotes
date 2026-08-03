@@ -73,7 +73,7 @@ button {
 }
 
 .is-hidden {
-  display: none;
+  display: none !important;
 }
 
 .topbar,
@@ -270,10 +270,49 @@ textarea::placeholder {
   color: var(--green);
 }
 
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .notes-list,
 .book-list {
   display: grid;
   gap: 10px;
+}
+
+.search-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.search-field input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(250, 251, 247, 0.86);
+  color: var(--ink);
+  padding: 0 12px;
+}
+
+.note-group {
+  display: grid;
+  gap: 10px;
+}
+
+.note-group + .note-group {
+  margin-top: 6px;
+}
+
+.note-group-title {
+  padding: 4px 2px 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
 }
 
 .note-item,
@@ -287,6 +326,20 @@ textarea::placeholder {
 
 .note-item {
   padding: 12px;
+}
+
+.note-item.is-auxiliary {
+  background: rgba(250, 251, 247, 0.48);
+  box-shadow: none;
+}
+
+.note-item.is-auxiliary .note-text {
+  color: rgba(43, 54, 55, 0.76);
+  font-size: 14px;
+}
+
+.note-item.is-auxiliary .note-type {
+  color: var(--green);
 }
 
 .note-top {
@@ -321,10 +374,15 @@ textarea::placeholder {
   text-align: center;
 }
 
+.empty.small {
+  padding: 10px 0;
+  font-size: 12px;
+}
+
 .book-swipe {
   position: relative;
   overflow: hidden;
-  background: rgba(154, 91, 100, 0.14);
+  background: rgba(154, 91, 100, 0.1);
 }
 
 .book-item {
@@ -334,6 +392,7 @@ textarea::placeholder {
   align-items: center;
   justify-content: space-between;
   min-height: 74px;
+  gap: 12px;
   padding: 12px;
   border: 0;
   box-shadow: none;
@@ -341,17 +400,21 @@ textarea::placeholder {
 }
 
 .book-swipe.is-open .book-item {
-  transform: translateX(-82px);
+  transform: translateX(-92px);
 }
 
 .delete-book {
   position: absolute;
   inset: 0 0 0 auto;
-  width: 82px;
+  width: 92px;
   border: 0;
-  background: var(--red);
+  background: rgba(154, 91, 100, 0.92);
   color: white;
   font-weight: 650;
+}
+
+.book-item > div {
+  min-width: 0;
 }
 
 .book-title {
@@ -365,12 +428,20 @@ textarea::placeholder {
 }
 
 .book-item button {
+  flex: 0 0 auto;
   min-height: 36px;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: transparent;
   color: var(--green);
+}
+
+.book-select {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--green);
 }
 
 .book-form {
@@ -399,7 +470,7 @@ textarea::placeholder {
 
 .form-actions {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
+  grid-template-columns: 1fr 1fr 1.25fr;
   gap: 8px;
 }
 
@@ -416,6 +487,62 @@ textarea::placeholder {
   background: var(--green);
   color: white;
   font-weight: 650;
+}
+
+.weread-search-results {
+  display: grid;
+  gap: 8px;
+}
+
+.weread-result {
+  display: grid;
+  gap: 3px;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(250, 251, 247, 0.72);
+  color: var(--ink);
+  text-align: left;
+}
+
+.weread-result small {
+  color: var(--muted);
+}
+
+.weread-result.is-selected {
+  border-color: rgba(87, 111, 109, 0.42);
+  background: rgba(218, 225, 212, 0.58);
+}
+
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(250, 251, 247, 0.82);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.bulk-bar div {
+  display: flex;
+  gap: 8px;
+}
+
+.bulk-bar button {
+  min-height: 34px;
+  padding: 0 12px;
+  color: var(--muted);
+}
+
+.bulk-bar button:last-child {
+  border-color: rgba(154, 91, 100, 0.34);
+  color: var(--red);
 }
 
 .sync-card {

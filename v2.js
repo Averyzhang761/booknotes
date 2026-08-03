@@ -1,7 +1,7 @@
 const bridgePrefsKey = "booknotes-bridge-v1";
 const config = window.READING_NOTES_CONFIG || {};
-const canUseSupabase = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
-const db = canUseSupabase ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey) : null;
+const canUseCloud = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
+const db = canUseCloud ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey) : null;
 
 let session = null;
 let books = [];
@@ -64,8 +64,8 @@ function showToast(message) {
 }
 
 async function signInWithGoogle() {
-  if (!canUseSupabase) {
-    showToast("需要 Supabase 配置");
+  if (!canUseCloud) {
+    showToast("云端未配置");
     return;
   }
 
@@ -298,8 +298,8 @@ function visibleNotes(targetView = view) {
 }
 
 function render() {
-  bridgeStatus.textContent = session ? `${session.user.email} · ${notes.length} 条` : "未登录";
-  bridgeAuthStatus.textContent = session ? "已连接 Supabase" : "登录后读取微信读书同步内容";
+  bridgeStatus.textContent = session ? `已连接云端 · ${notes.length} 条` : "未登录";
+  bridgeAuthStatus.textContent = session ? "已连接云端" : "登录后读取微信读书同步内容";
   bridgeGoogle.classList.toggle("is-hidden", Boolean(session));
   bridgeSignOut.classList.toggle("is-hidden", !session);
   bridgeListTitle.textContent = view === "queue" ? "待整理" : view === "active" ? "已发生" : "候选";
@@ -470,8 +470,8 @@ document.querySelector("#bridgeCopyQueue").addEventListener("click", copyQueue);
 
 async function init() {
   render();
-  if (!canUseSupabase) {
-    bridgeAuthStatus.textContent = "需要 Supabase 配置";
+  if (!canUseCloud) {
+    bridgeAuthStatus.textContent = "云端未配置";
     return;
   }
 
