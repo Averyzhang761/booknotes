@@ -1,8 +1,9 @@
-const cacheName = "paper-reading-notes-v1";
+const cacheName = "paper-reading-notes-v2";
 const appShell = [
   "./",
   "./index.html",
   "./styles.css",
+  "./config.js",
   "./app.js",
   "./manifest.webmanifest",
   "./icon.svg",
