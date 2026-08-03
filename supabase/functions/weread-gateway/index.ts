@@ -11,6 +11,11 @@ Deno.serve(async (request) => {
     return response({ error: "WEREAD_API_KEY is not configured" }, 500);
   }
 
+  const ownerEmail = Deno.env.get("OWNER_EMAIL");
+  if (ownerEmail && getJwtEmail(request) !== ownerEmail) {
+    return response({ error: "Forbidden" }, 403);
+  }
+
   try {
     const body = await request.json();
     const wereadBody = toWereadBody(body);
@@ -32,6 +37,20 @@ Deno.serve(async (request) => {
     return response({ error: "Invalid WeRead gateway request" }, 400);
   }
 });
+
+function getJwtEmail(request: Request) {
+  const token = request.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
+  const payload = token?.split(".")[1];
+  if (!payload) return null;
+
+  try {
+    const normalized = payload.replaceAll("-", "+").replaceAll("_", "/");
+    const decoded = atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "="));
+    return JSON.parse(decoded).email || null;
+  } catch {
+    return null;
+  }
+}
 
 function toWereadBody(body: Record<string, unknown>) {
   switch (body.action) {
