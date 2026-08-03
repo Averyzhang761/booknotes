@@ -315,7 +315,7 @@ function renderBooks() {
 
   if (batchMode) swipedBookId = null;
   const query = bookSearchQuery.trim();
-  const books = visibleBooks();
+  const books = sortBooksForDisplay(visibleBooks());
 
   if (!books.length) {
     bookList.innerHTML = `<div class="empty">${query ? "没有匹配的书。" : "还没有书。"}</div>`;
@@ -353,6 +353,15 @@ function visibleBooks() {
   return query
     ? state.books.filter((book) => `${book.title} ${book.author}`.toLowerCase().includes(query))
     : state.books;
+}
+
+function sortBooksForDisplay(books) {
+  if (!state.currentBookId) return books;
+  return [...books].sort((a, b) => {
+    if (a.id === state.currentBookId) return -1;
+    if (b.id === state.currentBookId) return 1;
+    return 0;
+  });
 }
 
 function escapeHtml(value) {
