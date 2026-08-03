@@ -418,6 +418,45 @@ textarea::placeholder {
   line-height: 1.6;
 }
 
+.auth-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.auth-form input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(250, 251, 247, 0.82);
+  color: var(--ink);
+  padding: 0 12px;
+}
+
+.auth-form button,
+.signout-button {
+  min-height: 42px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--green);
+  color: white;
+  font-weight: 650;
+}
+
+.signout-button {
+  width: 100%;
+  margin-top: 14px;
+  background: var(--ink);
+}
+
 .bottom-tabs {
   position: fixed;
   z-index: 2;

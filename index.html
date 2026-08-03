@@ -18,10 +18,10 @@
         <header class="topbar">
           <button class="icon-button" type="button" id="bookSwitch" aria-label="切换当前书">书</button>
           <div>
-            <p class="kicker">正在读</p>
-            <h1 id="currentBookTitle">悉达多</h1>
+            <p class="kicker" id="cloudStatus">云端未连接</p>
+            <h1 id="currentBookTitle">读书笔记</h1>
           </div>
-          <button class="icon-button sync-dot" type="button" id="syncOpen" aria-label="微信读书同步">微</button>
+          <button class="icon-button sync-dot" type="button" id="syncOpen" aria-label="账号和同步">云</button>
         </header>
 
         <section class="paper-card capture-card">
@@ -88,17 +88,29 @@
 
       <section class="app-page is-hidden" data-view="sync">
         <header class="plain-header">
-          <h2>微信读书</h2>
+          <h2>账号</h2>
           <button type="button" class="text-button" id="syncClose">完成</button>
         </header>
+        <section class="paper-card sync-card" id="setupPanel">
+          <p class="sync-status" id="syncStatus">正在检查云端配置...</p>
+          <form class="auth-form" id="authForm">
+            <label>
+              <span>Email</span>
+              <input id="emailInput" type="email" autocomplete="email" placeholder="你的邮箱" />
+            </label>
+            <button type="submit">发送登录链接</button>
+          </form>
+          <button type="button" class="signout-button is-hidden" id="signOut">退出登录</button>
+          <p class="sync-foot">笔记会保存到 Supabase。代码可以公开，读书数据不进 GitHub。</p>
+        </section>
         <section class="paper-card sync-card">
-          <p class="sync-status" id="syncStatus">未连接</p>
+          <p class="sync-status" id="wereadStatus">微信读书未同步</p>
           <div class="sync-grid">
-            <button type="button" data-sync="shelf">书架</button>
-            <button type="button" data-sync="notes">划线</button>
-            <button type="button" data-sync="thoughts">想法</button>
+            <button type="button" id="importWereadShelf">书架</button>
+            <button type="button" id="importWereadNotebooks">笔记本</button>
+            <button type="button" id="importCurrentWereadNotes">当前书</button>
           </div>
-          <p class="sync-foot">后续接入 weread-skills：/shelf/sync、/user/notebooks、书籍笔记接口。</p>
+          <p class="sync-foot">微信读书通过 Supabase Edge Function 代理访问，密钥只放在 Supabase secrets。</p>
         </section>
       </section>
 
@@ -110,12 +122,14 @@
           <span>书</span>
         </button>
         <button type="button" class="tab" data-target="sync">
-          <span>微读</span>
+          <span>云端</span>
         </button>
       </nav>
       <p class="toast" id="toast" role="status" aria-live="polite"></p>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./config.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
