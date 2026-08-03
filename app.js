@@ -32,6 +32,7 @@ const bookTitleInput = document.querySelector("#bookTitleInput");
 const bookAuthorInput = document.querySelector("#bookAuthorInput");
 const authForm = document.querySelector("#authForm");
 const emailInput = document.querySelector("#emailInput");
+const googleLogin = document.querySelector("#googleLogin");
 const signOut = document.querySelector("#signOut");
 const syncStatus = document.querySelector("#syncStatus");
 const wereadStatus = document.querySelector("#wereadStatus");
@@ -407,6 +408,23 @@ async function sendLoginLink(event) {
   showToast("登录链接已发送");
 }
 
+async function signInWithGoogle() {
+  if (!canUseSupabase) {
+    showToast("先配置 Supabase publishable key");
+    return;
+  }
+
+  const { error } = await db.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${location.origin}${location.pathname}` },
+  });
+
+  if (error) {
+    syncStatus.textContent = error.message;
+    showToast(error.message);
+  }
+}
+
 async function signOutUser() {
   await db.auth.signOut();
   state.session = null;
@@ -592,6 +610,7 @@ document.querySelector("#addBook").addEventListener("click", openBookForm);
 document.querySelector("#cancelBook").addEventListener("click", closeBookForm);
 bookForm.addEventListener("submit", addBook);
 authForm.addEventListener("submit", sendLoginLink);
+googleLogin.addEventListener("click", signInWithGoogle);
 signOut.addEventListener("click", signOutUser);
 document.querySelector("#exportNotes").addEventListener("click", exportNotes);
 document.querySelector("#syncOpen").addEventListener("click", () => setView("sync"));

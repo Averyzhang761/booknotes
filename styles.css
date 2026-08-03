@@ -441,6 +441,7 @@ textarea::placeholder {
   padding: 0 12px;
 }
 
+.google-button,
 .auth-form button,
 .signout-button {
   min-height: 42px;
@@ -449,6 +450,14 @@ textarea::placeholder {
   background: var(--green);
   color: white;
   font-weight: 650;
+}
+
+.google-button {
+  width: 100%;
+  margin-top: 14px;
+  background: #ffffff;
+  color: var(--ink);
+  border: 1px solid var(--line);
 }
 
 .signout-button {
