@@ -1,4 +1,4 @@
-const prefsKey = "paper-reading-notes-prefs-v2";
+const prefsKey = "paper-booknotes-prefs-v1";
 const makeId = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 const config = window.READING_NOTES_CONFIG || {};
