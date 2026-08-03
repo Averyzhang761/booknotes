@@ -387,7 +387,11 @@ async function pasteFromClipboard() {
 
 function wrapAsQuote() {
   const text = noteInput.value.trim();
-  if (!text) return;
+  if (!text) {
+    showToast("先粘贴或输入摘句");
+    noteInput.focus();
+    return;
+  }
   noteInput.value = `「${text.replace(/^「|」$/g, "")}」`;
   chooseType("摘句");
   updateInputMeta();

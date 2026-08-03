@@ -263,9 +263,9 @@ textarea::placeholder {
 
 .note-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: repeat(3, 1fr);
   align-items: end;
-  gap: 6px;
+  gap: 0;
   margin: 22px 0 12px;
   border-bottom: 1px solid var(--line);
 }
@@ -277,6 +277,7 @@ textarea::placeholder {
   border-radius: 0;
   background: transparent;
   color: var(--muted);
+  text-align: center;
 }
 
 .note-tab {
@@ -300,8 +301,8 @@ textarea::placeholder {
 }
 
 .note-export {
-  padding: 0 4px 0 10px;
   color: var(--green);
+  font-weight: 650;
 }
 
 .header-actions {
