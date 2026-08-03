@@ -113,7 +113,7 @@ button {
   position: relative;
   z-index: 1;
   min-height: 100vh;
-  padding: 18px 16px 96px;
+  padding: 18px 16px 112px;
 }
 
 .is-hidden {
@@ -766,32 +766,39 @@ textarea::placeholder {
 
 .bottom-tabs {
   position: fixed;
-  z-index: 2;
-  right: max(0px, calc((100vw - 430px) / 2));
+  z-index: 20;
+  right: auto;
   bottom: 0;
-  left: max(0px, calc((100vw - 430px) / 2));
+  left: 50%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   width: min(100vw, 430px);
-  margin: 0 auto;
+  margin: 0;
   padding: 8px 14px calc(18px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line);
-  background: var(--bottom-bg);
-  backdrop-filter: blur(14px);
+  border: 1px solid var(--line-strong);
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: var(--panel-strong);
+  box-shadow: 0 18px 46px rgba(17, 24, 39, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.44);
+  backdrop-filter: blur(22px) saturate(150%);
+  transform: translateX(-50%);
 }
 
 .tab {
-  min-height: 42px;
+  min-height: 40px;
   border: 0;
   border-radius: var(--radius);
   background: transparent;
-  color: var(--muted);
+  color: var(--ink);
+  font-weight: 650;
 }
 
 .tab.is-active {
   background: var(--button-active);
   color: var(--active-ink);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .toast {
