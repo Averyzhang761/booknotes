@@ -4,17 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f4f5ef" />
-    <title>Booknotes 中转器</title>
-    <link rel="stylesheet" href="./styles.css?v=20260803-4" />
+    <title>Booknotes 阅读收件箱</title>
+    <link rel="stylesheet" href="./styles.css?v=20260803-5" />
   </head>
   <body>
-    <main class="phone-shell" aria-label="微信读书到素问中转器">
+    <main class="phone-shell" aria-label="阅读收件箱">
       <section class="app-page bridge-page" data-bridge-view="inbox">
         <header class="topbar">
           <button class="icon-button" type="button" id="bridgeRefresh" aria-label="刷新">刷</button>
           <div>
             <p class="kicker" id="bridgeStatus">云端未连接</p>
-            <h1>中转器</h1>
+            <h1>阅读收件箱</h1>
           </div>
           <button class="icon-button sync-dot" type="button" id="bridgeSettings" aria-label="设置">设</button>
         </header>
@@ -28,30 +28,30 @@
         <section class="paper-card sync-card" id="bridgeSync">
           <p class="sync-status" id="bridgeSyncStatus">微信读书未同步</p>
           <div class="sync-grid">
-            <button type="button" id="bridgeImportBooks">笔记本</button>
+            <button type="button" id="bridgeImportShelf">书架候选</button>
+            <button type="button" id="bridgeImportBooks">已发生</button>
             <button type="button" id="bridgeImportMarks">当前书</button>
-            <button type="button" id="bridgeCopyQueue">复制待发送</button>
           </div>
-          <p class="sync-foot">这里是临时筛选台：忽略 / 待发送 / 复制成素问入口格式。不把内容自动写入素问。</p>
+          <p class="sync-foot">把高熵书架筛成真正发生过阅读关系的书，再复制成通用 Markdown。</p>
         </section>
 
         <section class="section-head">
-          <h2 id="bridgeListTitle">收件箱</h2>
-          <button type="button" id="bridgeClearLocal">清本地状态</button>
+          <h2 id="bridgeListTitle">候选</h2>
+          <button type="button" id="bridgeCopyQueue">复制</button>
         </section>
 
         <section class="notes-list" id="bridgeList" aria-live="polite"></section>
       </section>
 
-      <nav class="bottom-tabs" aria-label="中转器导航">
+      <nav class="bottom-tabs" aria-label="阅读收件箱导航">
         <button type="button" class="tab is-active" data-bridge-target="inbox">
-          <span>收件箱</span>
+          <span>候选</span>
+        </button>
+        <button type="button" class="tab" data-bridge-target="active">
+          <span>已发生</span>
         </button>
         <button type="button" class="tab" data-bridge-target="queue">
-          <span>待发送</span>
-        </button>
-        <button type="button" class="tab" data-bridge-target="settings">
-          <span>设置</span>
+          <span>待整理</span>
         </button>
       </nav>
       <p class="toast" id="bridgeToast" role="status" aria-live="polite"></p>
@@ -59,6 +59,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./config.js?v=20260803"></script>
-    <script src="./v2.js?v=20260803-1"></script>
+    <script src="./v2.js?v=20260803-2"></script>
   </body>
 </html>

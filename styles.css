@@ -477,6 +477,26 @@ textarea::placeholder {
   margin-bottom: 10px;
 }
 
+.bridge-inline-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  min-width: 86px;
+}
+
+.bridge-inline-actions button {
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(250, 251, 247, 0.76);
+  color: var(--green);
+  font-size: 12px;
+}
+
+.bridge-inline-actions button:first-child {
+  color: var(--muted);
+}
+
 .auth-form {
   display: grid;
   gap: 10px;

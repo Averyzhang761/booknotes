@@ -10,9 +10,9 @@
   "orientation": "portrait",
   "shortcuts": [
     {
-      "name": "中转器",
-      "short_name": "中转器",
-      "url": "./v2.html?v=20260803-1"
+      "name": "阅读收件箱",
+      "short_name": "收件箱",
+      "url": "./v2.html?v=20260803-2"
     }
   ],
   "icons": [

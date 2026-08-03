@@ -40,6 +40,22 @@ function setItemState(noteId, value) {
   render();
 }
 
+function bookStateKey(bookId) {
+  return `book:${bookId}`;
+}
+
+function noteCountForBook(bookId) {
+  return notes.filter((note) => note.bookId === bookId).length;
+}
+
+function isBookActive(book) {
+  return localState[bookStateKey(book.id)] === "active" || noteCountForBook(book.id) > 0;
+}
+
+function isBookIgnored(book) {
+  return localState[bookStateKey(book.id)] === "ignored";
+}
+
 function showToast(message) {
   clearTimeout(toastTimer);
   bridgeToast.textContent = message;
@@ -151,7 +167,7 @@ async function readJsonResponse(response) {
 }
 
 async function importWereadBooks() {
-  bridgeSyncStatus.textContent = "正在同步微信读书笔记本...";
+  bridgeSyncStatus.textContent = "正在同步有笔记的书...";
   const data = await invokeWeread({ action: "notebooks", count: 100 });
   if (!data) return;
 
@@ -175,13 +191,41 @@ async function importWereadBooks() {
   }
 
   await loadCloudData();
-  bridgeSyncStatus.textContent = `已同步 ${rows.length} 本有笔记的书`;
+  bridgeSyncStatus.textContent = `已同步 ${rows.length} 本已发生的书`;
+}
+
+async function importWereadShelf() {
+  bridgeSyncStatus.textContent = "正在同步微信读书书架候选...";
+  const data = await invokeWeread({ action: "shelf" });
+  if (!data) return;
+
+  const rows = (data.books || []).map((book) => ({
+    user_id: session.user.id,
+    title: book.title || "未命名",
+    author: book.author || "未填写",
+    source: "weread",
+    external_id: book.bookId,
+  }));
+
+  if (!rows.length) {
+    bridgeSyncStatus.textContent = "微信读书书架为空";
+    return;
+  }
+
+  const { error } = await db.from("books").upsert(rows, { onConflict: "user_id,source,external_id" });
+  if (error) {
+    bridgeSyncStatus.textContent = `候选写入失败: ${error.message}`;
+    return;
+  }
+
+  await loadCloudData();
+  bridgeSyncStatus.textContent = `已同步 ${rows.length} 本候选书`;
 }
 
 async function importCurrentBookMarks() {
   const book = currentBook();
   if (!book?.externalId || book.source !== "weread") {
-    showToast("先在收件箱选择一本微信读书来源的书");
+    showToast("先在已发生里选择一本微信读书来源的书");
     return;
   }
 
@@ -218,19 +262,19 @@ async function importCurrentBookMarks() {
 async function copyQueue() {
   const queued = visibleNotes("queue");
   if (!queued.length) {
-    showToast("待发送为空");
+    showToast("待整理为空");
     return;
   }
 
-  const body = queued.map(formatForSuwen).join("\n\n---\n\n");
+  const body = queued.map(formatForMarkdown).join("\n\n---\n\n");
   await navigator.clipboard.writeText(body);
-  showToast("已复制素问格式");
+  showToast("已复制 Markdown");
 }
 
-function formatForSuwen(note) {
+function formatForMarkdown(note) {
   const book = books.find((item) => item.id === note.bookId);
   return [
-    "#读书摘记",
+    "# 读书片段",
     "",
     `来源：微信读书 / ${book?.title || "未知书籍"}`,
     `作者：${book?.author || "未填写"}`,
@@ -258,36 +302,37 @@ function render() {
   bridgeAuthStatus.textContent = session ? "已连接 Supabase" : "登录后读取微信读书同步内容";
   bridgeGoogle.classList.toggle("is-hidden", Boolean(session));
   bridgeSignOut.classList.toggle("is-hidden", !session);
-  bridgeListTitle.textContent = view === "queue" ? "待发送" : view === "settings" ? "设置" : "收件箱";
+  bridgeListTitle.textContent = view === "queue" ? "待整理" : view === "active" ? "已发生" : "候选";
 
   if (!session) {
     bridgeList.innerHTML = `<div class="empty">先登录，然后同步微信读书笔记本。</div>`;
     return;
   }
 
-  if (view === "settings") {
-    renderSettings();
-    return;
-  }
-
   renderBridgeList();
 }
 
-function renderSettings() {
+function renderActiveBooks() {
   const book = currentBook();
+  const activeBooks = books.filter((item) => isBookActive(item) && !isBookIgnored(item));
+  if (!activeBooks.length) {
+    bridgeList.innerHTML = `<div class="empty">还没有已发生的书。同步“已发生”或从候选里点“开始处理”。</div>`;
+    return;
+  }
+
   bridgeList.innerHTML = `
     <article class="note-item">
       <div class="note-top">
         <span class="note-type">当前来源书</span>
-        <span>${books.length} 本</span>
+        <span>${activeBooks.length} 本</span>
       </div>
       <div class="note-text">${escapeHtml(book?.title || "无")}</div>
     </article>
-    ${books.map((item) => `
+    ${activeBooks.map((item) => `
       <article class="book-item bridge-book-row">
         <div>
           <div class="book-title">${escapeHtml(item.title)}</div>
-          <div class="book-meta">${escapeHtml(item.author)} · ${escapeHtml(item.source)}</div>
+          <div class="book-meta">${escapeHtml(item.author)} · ${noteCountForBook(item.id)} 条片段</div>
         </div>
         <button type="button" data-pick-book="${escapeHtml(item.id)}">${item.id === currentBookId ? "当前" : "选择"}</button>
       </article>
@@ -295,10 +340,41 @@ function renderSettings() {
   `;
 }
 
+function renderCandidateBooks() {
+  const candidates = books.filter((book) => book.source === "weread" && !isBookActive(book) && !isBookIgnored(book));
+  if (!candidates.length) {
+    bridgeList.innerHTML = `<div class="empty">候选为空。点“书架候选”从微信读书同步高熵书架。</div>`;
+    return;
+  }
+
+  bridgeList.innerHTML = candidates.map((book) => `
+    <article class="book-item bridge-book-row">
+      <div>
+        <div class="book-title">${escapeHtml(book.title)}</div>
+        <div class="book-meta">${escapeHtml(book.author)} · 候选</div>
+      </div>
+      <div class="bridge-inline-actions">
+        <button type="button" data-ignore-book="${escapeHtml(book.id)}">忽略</button>
+        <button type="button" data-start-book="${escapeHtml(book.id)}">开始处理</button>
+      </div>
+    </article>
+  `).join("");
+}
+
 function renderBridgeList() {
+  if (view === "inbox") {
+    renderCandidateBooks();
+    return;
+  }
+
+  if (view === "active") {
+    renderActiveBooks();
+    return;
+  }
+
   const items = visibleNotes();
   if (!items.length) {
-    bridgeList.innerHTML = `<div class="empty">${view === "queue" ? "还没有待发送内容。" : "收件箱为空，先同步微信读书。"}</div>`;
+    bridgeList.innerHTML = `<div class="empty">${view === "queue" ? "还没有待整理内容。" : "候选为空，先同步微信读书。"}</div>`;
     return;
   }
 
@@ -313,7 +389,7 @@ function renderBridgeList() {
         <div class="note-text">${escapeHtml(note.text)}</div>
         <div class="bridge-actions">
           <button type="button" data-ignore="${escapeHtml(note.id)}">忽略</button>
-          <button type="button" data-queue="${escapeHtml(note.id)}">${localState[note.id] === "queue" ? "已待发" : "待发送"}</button>
+          <button type="button" data-queue="${escapeHtml(note.id)}">${localState[note.id] === "queue" ? "已待整理" : "待整理"}</button>
           <button type="button" data-copy-one="${escapeHtml(note.id)}">复制</button>
         </div>
       </article>
@@ -335,6 +411,23 @@ bridgeTabs.forEach((tab) => {
 });
 
 bridgeList.addEventListener("click", async (event) => {
+  const ignoreBook = event.target.closest("[data-ignore-book]");
+  if (ignoreBook) {
+    localState[bookStateKey(ignoreBook.dataset.ignoreBook)] = "ignored";
+    saveLocalState();
+    render();
+    return;
+  }
+
+  const startBook = event.target.closest("[data-start-book]");
+  if (startBook) {
+    localState[bookStateKey(startBook.dataset.startBook)] = "active";
+    currentBookId = startBook.dataset.startBook;
+    saveLocalState();
+    setBridgeView("active");
+    return;
+  }
+
   const pickBook = event.target.closest("[data-pick-book]");
   if (pickBook) {
     currentBookId = pickBook.dataset.pickBook;
@@ -358,7 +451,7 @@ bridgeList.addEventListener("click", async (event) => {
   if (copyOne) {
     const note = notes.find((item) => item.id === copyOne.dataset.copyOne);
     if (!note) return;
-    await navigator.clipboard.writeText(formatForSuwen(note));
+    await navigator.clipboard.writeText(formatForMarkdown(note));
     localState[note.id] = "sent";
     saveLocalState();
     render();
@@ -367,18 +460,13 @@ bridgeList.addEventListener("click", async (event) => {
 });
 
 document.querySelector("#bridgeRefresh").addEventListener("click", loadCloudData);
-document.querySelector("#bridgeSettings").addEventListener("click", () => setBridgeView("settings"));
+document.querySelector("#bridgeSettings").addEventListener("click", () => setBridgeView("active"));
 document.querySelector("#bridgeGoogle").addEventListener("click", signInWithGoogle);
 document.querySelector("#bridgeSignOut").addEventListener("click", signOut);
+document.querySelector("#bridgeImportShelf").addEventListener("click", importWereadShelf);
 document.querySelector("#bridgeImportBooks").addEventListener("click", importWereadBooks);
 document.querySelector("#bridgeImportMarks").addEventListener("click", importCurrentBookMarks);
 document.querySelector("#bridgeCopyQueue").addEventListener("click", copyQueue);
-document.querySelector("#bridgeClearLocal").addEventListener("click", () => {
-  localState = {};
-  saveLocalState();
-  render();
-  showToast("已清本地筛选状态");
-});
 
 async function init() {
   render();
