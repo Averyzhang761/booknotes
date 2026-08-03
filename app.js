@@ -328,7 +328,7 @@ function renderBooks() {
       const count = state.notes.filter((note) => note.bookId === book.id).length;
       const ownCount = state.notes.filter((note) => note.bookId === book.id && note.source !== "weread").length;
       const auxCount = count - ownCount;
-      const active = book.id === state.currentBookId ? "当前" : "切换";
+      const active = book.id === state.currentBookId;
       const sourceLabel = book.source === "weread" ? "微信读书" : "手动添加";
       const countLabel = auxCount ? `${ownCount} 条 + 微信 ${auxCount}` : `${ownCount} 条`;
       const selected = selectedBookIds.has(book.id) ? "checked" : "";
@@ -341,7 +341,7 @@ function renderBooks() {
               <div class="book-title">${escapeHtml(book.title)}</div>
               <div class="book-meta">${escapeHtml(book.author)} · ${sourceLabel} · ${countLabel}</div>
             </div>
-            ${batchMode ? "" : `<button type="button" data-book="${escapeHtml(book.id)}">${active}</button>`}
+            ${batchMode ? "" : `<span class="book-action ${active ? "is-current" : ""}">${active ? "当前" : "›"}</span>`}
           </div>
         </article>
       `;
@@ -728,9 +728,14 @@ bookList.addEventListener("click", (event) => {
 
   if (batchMode) return;
 
-  const button = event.target.closest("[data-book]");
-  if (!button) return;
-  state.currentBookId = button.dataset.book;
+  const card = event.target.closest("[data-book-card]");
+  if (!card) return;
+  if (swipedBookId === card.dataset.bookCard) {
+    swipedBookId = null;
+    renderBooks();
+    return;
+  }
+  state.currentBookId = card.dataset.bookCard;
   swipedBookId = null;
   prefs.currentBookId = state.currentBookId;
   savePrefs();

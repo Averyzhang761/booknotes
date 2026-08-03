@@ -427,14 +427,26 @@ textarea::placeholder {
   font-size: 12px;
 }
 
-.book-item button {
+.book-action {
   flex: 0 0 auto;
-  min-height: 36px;
-  padding: 0 12px;
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  min-height: 34px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: transparent;
   color: var(--green);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.book-action.is-current {
+  min-width: 46px;
+  padding: 0 10px;
+  background: rgba(87, 111, 109, 0.1);
+  font-size: 13px;
+  font-weight: 650;
 }
 
 .book-select {
