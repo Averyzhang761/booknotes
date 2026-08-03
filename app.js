@@ -304,9 +304,9 @@ function render() {
 }
 
 function statusText() {
-  if (!canUseCloud) return "云端未配置";
-  if (!state.session) return "未登录云端";
-  return `已连接云端 · ${state.books.length} 本书 · ${state.notes.length} 条`;
+  if (!canUseCloud) return "未配置";
+  if (!state.session) return "未登录";
+  return `${state.books.length} 本书 · ${state.notes.length} 条`;
 }
 
 function renderNotes(bookId) {

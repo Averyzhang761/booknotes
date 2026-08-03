@@ -1,64 +1,64 @@
 :root {
   color-scheme: light;
-  --ink: #252525;
-  --muted: #545454;
-  --paper: #fbfbfa;
-  --paper-deep: #e8e8e6;
-  --line: rgba(37, 37, 37, 0.12);
-  --line-strong: rgba(37, 37, 37, 0.2);
-  --accent: #545454;
-  --accent-soft: #9a9a9a;
-  --accent-deep: #252525;
+  --ink: #111827;
+  --muted: #374151;
+  --paper: #f8fafc;
+  --paper-deep: #e5e7eb;
+  --line: rgba(17, 24, 39, 0.14);
+  --line-strong: rgba(17, 24, 39, 0.24);
+  --accent: #374151;
+  --accent-soft: #6b7280;
+  --accent-deep: #111827;
   --danger: #a76370;
-  --panel: rgba(255, 255, 255, 0.84);
-  --panel-strong: rgba(255, 255, 255, 0.94);
-  --panel-soft: rgba(255, 255, 255, 0.62);
-  --field: rgba(255, 255, 255, 0.88);
-  --button: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(207, 207, 207, 0.34));
-  --button-active: linear-gradient(135deg, rgba(37, 37, 37, 0.98), rgba(84, 84, 84, 0.9) 56%, rgba(125, 125, 125, 0.78));
-  --glass-highlight: linear-gradient(135deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.08) 46%, rgba(207, 207, 207, 0.12));
-  --body-bg: linear-gradient(145deg, #fbfbfa 0%, #f0f0ee 46%, #dededb 100%);
-  --shell-bg: linear-gradient(155deg, rgba(255, 255, 255, 0.76), rgba(251, 251, 250, 0.54) 42%, rgba(207, 207, 207, 0.24)),
-    linear-gradient(90deg, rgba(37, 37, 37, 0.035), transparent 34%, rgba(125, 125, 125, 0.06));
-  --shell-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.78), transparent 28%, rgba(207, 207, 207, 0.12));
-  --text-placeholder: rgba(125, 125, 125, 0.76);
-  --bottom-bg: rgba(251, 251, 250, 0.92);
-  --toast-bg: rgba(37, 37, 37, 0.92);
-  --toast-ink: #fbfbfa;
-  --active-ink: #fbfbfa;
-  --shadow: 0 28px 86px rgba(37, 37, 37, 0.14);
+  --panel: rgba(255, 255, 255, 0.9);
+  --panel-strong: rgba(255, 255, 255, 0.96);
+  --panel-soft: rgba(248, 250, 252, 0.78);
+  --field: rgba(255, 255, 255, 0.94);
+  --button: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(209, 213, 219, 0.42));
+  --button-active: linear-gradient(135deg, rgba(17, 24, 39, 0.98), rgba(55, 65, 81, 0.94) 58%, rgba(107, 114, 128, 0.86));
+  --glass-highlight: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.08) 46%, rgba(209, 213, 219, 0.12));
+  --body-bg: linear-gradient(145deg, #f8fafc 0%, #eef2f6 46%, #d9dee5 100%);
+  --shell-bg: linear-gradient(155deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.62) 42%, rgba(209, 213, 219, 0.28)),
+    linear-gradient(90deg, rgba(17, 24, 39, 0.04), transparent 34%, rgba(107, 114, 128, 0.06));
+  --shell-overlay: linear-gradient(180deg, rgba(255, 255, 255, 0.82), transparent 28%, rgba(209, 213, 219, 0.1));
+  --text-placeholder: rgba(75, 85, 99, 0.82);
+  --bottom-bg: rgba(248, 250, 252, 0.94);
+  --toast-bg: rgba(17, 24, 39, 0.94);
+  --toast-ink: #f8fafc;
+  --active-ink: #f8fafc;
+  --shadow: 0 28px 86px rgba(17, 24, 39, 0.14);
   --radius: 8px;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Segoe UI", sans-serif;
 }
 
 :root[data-theme="night"] {
   color-scheme: dark;
-  --ink: #f1f1ef;
-  --muted: #d5d5d5;
-  --paper: #252525;
-  --paper-deep: #181818;
-  --line: rgba(241, 241, 239, 0.14);
-  --line-strong: rgba(241, 241, 239, 0.24);
-  --accent: #cfcfcf;
-  --accent-soft: #f1f1ef;
-  --accent-deep: #7d7d7d;
+  --ink: #f9fafb;
+  --muted: #e5e7eb;
+  --paper: #111827;
+  --paper-deep: #0b111c;
+  --line: rgba(249, 250, 251, 0.16);
+  --line-strong: rgba(249, 250, 251, 0.28);
+  --accent: #e5e7eb;
+  --accent-soft: #f9fafb;
+  --accent-deep: #9ca3af;
   --danger: #e9a0ad;
-  --panel: rgba(37, 37, 37, 0.84);
-  --panel-strong: rgba(84, 84, 84, 0.8);
-  --panel-soft: rgba(241, 241, 239, 0.14);
-  --field: rgba(241, 241, 239, 0.14);
-  --button: linear-gradient(135deg, rgba(241, 241, 239, 0.16), rgba(207, 207, 207, 0.07));
-  --button-active: linear-gradient(135deg, rgba(241, 241, 239, 0.92), rgba(207, 207, 207, 0.64), rgba(125, 125, 125, 0.34));
-  --glass-highlight: linear-gradient(135deg, rgba(241, 241, 239, 0.12), rgba(241, 241, 239, 0.02) 48%, rgba(207, 207, 207, 0.08));
-  --body-bg: linear-gradient(145deg, #181818 0%, #252525 48%, #545454 100%);
-  --shell-bg: linear-gradient(155deg, rgba(241, 241, 239, 0.08), rgba(37, 37, 37, 0.52) 42%, rgba(125, 125, 125, 0.14)),
-    linear-gradient(90deg, rgba(241, 241, 239, 0.08), transparent 34%, rgba(207, 207, 207, 0.05));
-  --shell-overlay: linear-gradient(180deg, rgba(241, 241, 239, 0.08), transparent 32%, rgba(207, 207, 207, 0.06));
-  --text-placeholder: rgba(207, 207, 207, 0.72);
-  --bottom-bg: rgba(24, 24, 24, 0.86);
-  --toast-bg: rgba(241, 241, 239, 0.92);
-  --toast-ink: #252525;
-  --active-ink: #252525;
+  --panel: rgba(17, 24, 39, 0.88);
+  --panel-strong: rgba(31, 41, 55, 0.86);
+  --panel-soft: rgba(249, 250, 251, 0.16);
+  --field: rgba(249, 250, 251, 0.16);
+  --button: linear-gradient(135deg, rgba(249, 250, 251, 0.18), rgba(209, 213, 219, 0.08));
+  --button-active: linear-gradient(135deg, rgba(249, 250, 251, 0.96), rgba(209, 213, 219, 0.72), rgba(156, 163, 175, 0.42));
+  --glass-highlight: linear-gradient(135deg, rgba(249, 250, 251, 0.12), rgba(249, 250, 251, 0.02) 48%, rgba(209, 213, 219, 0.08));
+  --body-bg: linear-gradient(145deg, #0b111c 0%, #111827 48%, #374151 100%);
+  --shell-bg: linear-gradient(155deg, rgba(249, 250, 251, 0.08), rgba(17, 24, 39, 0.56) 42%, rgba(107, 114, 128, 0.14)),
+    linear-gradient(90deg, rgba(249, 250, 251, 0.08), transparent 34%, rgba(209, 213, 219, 0.05));
+  --shell-overlay: linear-gradient(180deg, rgba(249, 250, 251, 0.08), transparent 32%, rgba(209, 213, 219, 0.06));
+  --text-placeholder: rgba(229, 231, 235, 0.78);
+  --bottom-bg: rgba(11, 17, 28, 0.9);
+  --toast-bg: rgba(249, 250, 251, 0.94);
+  --toast-ink: #111827;
+  --active-ink: #111827;
   --shadow: 0 30px 92px rgba(0, 0, 0, 0.34);
 }
 
@@ -129,6 +129,11 @@ button {
   min-height: 56px;
 }
 
+.topbar {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+}
+
 .topbar > div {
   flex: 1;
   min-width: 0;
@@ -138,12 +143,18 @@ button {
   display: flex;
   flex: 0 0 auto;
   gap: 6px;
+  justify-self: end;
 }
 
 .kicker {
-  margin: 0 0 2px;
-  color: var(--muted);
-  font-size: 12px;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 40px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 h1,
@@ -153,12 +164,7 @@ p {
 }
 
 h1 {
-  overflow: hidden;
-  font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
-  font-size: 24px;
-  font-weight: 720;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: none;
 }
 
 h2 {
@@ -222,12 +228,12 @@ h2 {
   width: 17px;
   height: 17px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #ffffff 0%, #cfcfcf 52%, #545454 100%);
-  box-shadow: 0 0 18px rgba(207, 207, 207, 0.7);
+  background: linear-gradient(135deg, #ffffff 0%, #d1d5db 52%, #374151 100%);
+  box-shadow: 0 0 18px rgba(209, 213, 219, 0.7);
 }
 
 .theme-dot[data-mode="night"] .theme-glyph {
-  background: linear-gradient(135deg, #252525 0%, #7d7d7d 58%, #f1f1ef 100%);
+  background: linear-gradient(135deg, #111827 0%, #6b7280 58%, #f9fafb 100%);
 }
 
 .paper-card {
