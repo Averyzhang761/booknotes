@@ -395,15 +395,36 @@ function escapeHtml(value) {
 }
 
 async function pasteFromClipboard() {
+  noteInput.focus();
+  if (!navigator.clipboard?.readText) {
+    showToast("手机浏览器不支持按钮粘贴，请长按输入框粘贴");
+    return;
+  }
+
   try {
     const text = await navigator.clipboard.readText();
-    noteInput.value = noteInput.value ? `${noteInput.value}\n${text}` : text;
+    if (!text) {
+      showToast("剪贴板为空");
+      return;
+    }
+    insertIntoNoteInput(text);
     updateInputMeta();
-    maybeAutoSavePaste();
-    noteInput.focus();
+    showToast("已粘贴");
   } catch {
-    noteInput.focus();
+    showToast("读取剪贴板失败，请长按输入框粘贴");
   }
+}
+
+function insertIntoNoteInput(text) {
+  const start = noteInput.selectionStart ?? noteInput.value.length;
+  const end = noteInput.selectionEnd ?? noteInput.value.length;
+  const prefix = noteInput.value.slice(0, start);
+  const suffix = noteInput.value.slice(end);
+  const spacer = prefix && !prefix.endsWith("\n") ? "\n" : "";
+  const nextText = `${prefix}${spacer}${text}${suffix}`;
+  const cursor = start + spacer.length + text.length;
+  noteInput.value = nextText;
+  noteInput.setSelectionRange(cursor, cursor);
 }
 
 function wrapAsQuote() {
