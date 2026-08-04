@@ -42,7 +42,9 @@ Deno.serve(async (request) => {
               "不要装成作者本人；最多说“沿着这本书的意思”。",
               "如果原文在讨论客观、偏见、事实、情绪、判断，就逼问用户最近哪个判断被偏见保护着，不要转到无关的意义、愿景或空虚。",
               "示例：原文说不要被“应该”遮住真实情况时，好回复是“那你最近哪个判断，其实不是从事实出发，而是从‘事情就该这样’出发？如果让一个反对你的人补充证据，你最怕他指出什么？”",
+              "示例：原文说冷静和情绪化时，好回复是“你最近哪个判断，被你包装成了‘我很冷静’？如果把情绪也当成证据，而不是噪音，它会提醒你哪件事？”",
               "坏回复示例：讨论原则定义和客观之间是否存在内在张力。",
+              "坏回复示例：连续问如何判断、如何确信、如何界定。",
               "输出 JSON，格式为 {\"response\":\"...\",\"basis\":[\"...\",\"...\"]}。",
               "response 用中文，1 段，45-90 字，口语但不油腻。",
               "basis 最多 3 条，只写实际使用的依据，例如原文关键词、当前书/作者、微信读书划线、本地上下文。",
@@ -69,9 +71,13 @@ Deno.serve(async (request) => {
       return response({ error: "Model returned an invalid response" }, 502);
     }
 
+    const modelResponse = String(parsed.response).trim();
+    const finalResponse = isUsefulResponse(modelResponse) ? modelResponse : buildDirectQuestion(payload.quote);
     return response({
-      response: String(parsed.response).trim(),
-      basis: Array.isArray(parsed.basis) ? parsed.basis.slice(0, 3).map(String) : [],
+      response: finalResponse,
+      basis: Array.isArray(parsed.basis) && isUsefulResponse(modelResponse)
+        ? parsed.basis.slice(0, 3).map(String)
+        : buildFallbackBasis(payload.quote, payload.book, payload.author),
     });
   } catch (_error) {
     return response({ error: "Invalid second author request" }, 400);
@@ -106,6 +112,50 @@ function parseModelJson(text: string) {
     const match = text.match(/\{[\s\S]*\}/);
     return match ? JSON.parse(match[0]) : null;
   }
+}
+
+function isUsefulResponse(text: string) {
+  if (!text) return false;
+  if (text.length > 140) return false;
+  const badPatterns = [
+    /沿着作者视角/,
+    /既然/,
+    /那么/,
+    /是否/,
+    /如何判断/,
+    /如何确信/,
+    /如何界定/,
+    /内在的?张力/,
+    /另一种形式/,
+    /我们如何/,
+    /您/,
+  ];
+  if (badPatterns.some((pattern) => pattern.test(text))) return false;
+  const questionCount = (text.match(/[？?]/g) || []).length;
+  return questionCount > 0 && questionCount <= 2;
+}
+
+function buildDirectQuestion(quote: string) {
+  if (/应该|偏见|客观|真实|冷静|情绪化|事实|看法/.test(quote)) {
+    return "那你最近哪个判断，其实不是从事实出发，而是从“事情就该这样”出发？如果让一个反对你的人补充证据，你最怕他指出什么？";
+  }
+  const term = extractTerms(quote)[0] || "这句话";
+  return `先别急着同意「${term}」。它让你想到最近哪件具体的事？如果只写一个例子，你会写谁、哪天、哪个判断？`;
+}
+
+function buildFallbackBasis(quote: string, book: unknown, author: unknown) {
+  return [
+    `原文：${extractTerms(quote).slice(0, 3).join(" / ") || "当前段落"}`,
+    book ? `当前书：${book}` : "",
+    author ? `作者：${author}` : "",
+  ].filter(Boolean);
+}
+
+function extractTerms(text: string) {
+  const conceptTerms = ["应该", "偏见", "客观", "真实", "冷静", "情绪化", "事实", "看法", "原则", "判断", "结果"];
+  const conceptHits = conceptTerms.filter((term) => text.includes(term));
+  const fallbackTerms = text.match(/[\u4e00-\u9fa5]{2,4}/g) || [];
+  return [...new Set([...conceptHits, ...fallbackTerms])].slice(0, 6);
 }
 
 function getJwtEmail(request: Request) {
