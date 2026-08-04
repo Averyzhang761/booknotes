@@ -1,5 +1,6 @@
 const prefsKey = "paper-booknotes-prefs-v1";
 const hiddenWereadAuthor = "__BOOKNOTES_HIDDEN__";
+const appVersion = "20260803-29";
 
 const config = window.READING_NOTES_CONFIG || {};
 const agentContext = window.READING_AGENT_CONTEXT || {};
@@ -1268,7 +1269,7 @@ async function init() {
   }
 
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+    navigator.serviceWorker.register(`./sw.js?v=${appVersion}`).then((registration) => registration.update()).catch(() => {});
   }
 }
 
