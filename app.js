@@ -1,6 +1,6 @@
 const prefsKey = "paper-booknotes-prefs-v1";
 const hiddenWereadAuthor = "__BOOKNOTES_HIDDEN__";
-const appVersion = "20260803-31";
+const appVersion = "20260803-32";
 
 const config = window.READING_NOTES_CONFIG || {};
 const agentContext = window.READING_AGENT_CONTEXT || {};
@@ -165,7 +165,7 @@ function updateInputMeta() {
   }
 }
 
-function updateCopilotResponse(sourceText = noteInput.value) {
+async function updateCopilotResponse(sourceText = noteInput.value) {
   const text = sourceText.trim();
   if (text.length < 12) {
     copilotResponse.textContent = text ? "这段太短，还不足以判断。粘贴一整句或一小段微信读书内容试试。" : defaultCopilotText;
@@ -174,56 +174,72 @@ function updateCopilotResponse(sourceText = noteInput.value) {
     return false;
   }
 
-  const draft = buildCopilotResponse(text);
+  copilotResponse.textContent = "正在生成第二作者回应...";
+  copilotBasis.textContent = "依据：当前段落、当前书、微信导入信息。";
+
+  const draft = await requestSecondAuthor(text) || buildCopilotResponse(text);
   latestCopilotResponse = draft.response;
   copilotResponse.textContent = latestCopilotResponse;
   copilotBasis.textContent = `依据：${draft.basis.join("；")}`;
   return true;
 }
 
+async function requestSecondAuthor(text) {
+  if (!canUseCloud || !state.session) return null;
+
+  const book = currentBook();
+  try {
+    const result = await fetch(`${config.supabaseUrl}/functions/v1/second-author`, {
+      method: "POST",
+      headers: {
+        apikey: config.supabaseAnonKey,
+        Authorization: `Bearer ${state.session.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        quote: text,
+        book: book?.title || "",
+        author: readableAuthor(book?.author),
+        wereadNotes: collectRelatedWereadSnippets(text),
+        localContext: collectRelatedAgentSnippets(text),
+      }),
+    });
+    const data = await readJsonResponse(result);
+    if (!result.ok || data?.error) return null;
+    const responseText = String(data.response || "").trim();
+    if (!responseText) return null;
+    const basis = Array.isArray(data.basis) ? data.basis.map(String).filter(Boolean) : [];
+    return {
+      response: responseText,
+      basis: basis.length ? basis : buildEvidenceBasis(text),
+    };
+  } catch {
+    return null;
+  }
+}
+
 function buildCopilotResponse(text) {
   const evidence = collectCopilotEvidence(text);
-  const { theme, themeConfident, author, basis, quoteTerms } = evidence;
-  const thread = inferRecentThread();
-  const authorView = buildAuthorView(theme, author, quoteTerms, themeConfident);
-  const personalTurn = buildPersonalTurn(theme, thread, evidence);
+  const { author, basis, quoteTerms, wereadMatch, agentHit } = evidence;
+  const speaker = author ? `如果沿着 ${author} 的作者视角继续说` : "如果沿着这本书的作者视角继续说";
+  const firstTerm = quoteTerms[0] || "这句话";
+  const secondTerm = quoteTerms[1] || "判断";
+  const contextLine = [
+    wereadMatch ? "你在微信读书里有相近划线。" : "",
+    agentHit ? "你的本地上下文里也有相近痕迹。" : "",
+  ].filter(Boolean).join(" ");
   return {
-    response: `${authorView}\n\n${personalTurn}`,
+    response: `${speaker}，他可能会先卡住「${firstTerm}」和「${secondTerm}」之间的关系：你是真的愿意让事实推翻自己的看法，还是只是在用“冷静”维护一个已经先入为主的判断？${contextLine ? `\n\n${contextLine}` : ""}`,
     basis,
   };
-}
-
-function detectReadingTheme(text) {
-  const rules = [
-    { label: "意义感", pattern: /意义|愿景|价值|真正|重要|生活|人生|空虚|虚无/ },
-    { label: "控制感", pattern: /控制|坚持|自律|选择|自由|秩序|规则|失控|稳定/ },
-    { label: "关系与孤独", pattern: /孤独|关系|亲密|理解|他人|沟通|爱|被看见/ },
-    { label: "欲望与成就", pattern: /成功|名利|野心|成就|得到|拥有|财富|目标/ },
-    { label: "时间与行动", pattern: /时间|长期|当下|行动|拖延|开始|完成|未来/ },
-  ];
-  return rules.find((rule) => rule.pattern.test(text))?.label || "一个还没命名的反复主题";
-}
-
-function inferRecentThread() {
-  const recentText = state.notes
-    .filter((note) => note.source !== "weread")
-    .slice(0, 12)
-    .map((note) => note.text)
-    .join("\n");
-  if (/意义|愿景|价值|空虚|生活|人生/.test(recentText)) return "意义感";
-  if (/控制|坚持|自律|选择|自由|秩序/.test(recentText)) return "控制感";
-  if (/成功|名利|野心|成就|目标/.test(recentText)) return "欲望与成就";
-  if (/孤独|关系|亲密|理解|他人/.test(recentText)) return "关系与孤独";
-  return "为什么这句话会抓住我";
 }
 
 function collectCopilotEvidence(text) {
   const book = currentBook();
   const author = readableAuthor(book?.author);
-  const themeResult = detectReadingThemeWithEvidence(text);
   const wereadMatch = findWereadMatch(text);
-  const agentHit = findAgentHit(themeResult.label);
   const quoteTerms = extractReadableTerms(text);
+  const agentHit = findAgentHit(quoteTerms);
   const basis = [
     quoteTerms.length ? `段落关键词：${quoteTerms.slice(0, 3).join(" / ")}` : "段落关键词不足",
     book ? `当前书：${book.title}` : "未选择当前书",
@@ -232,8 +248,6 @@ function collectCopilotEvidence(text) {
     agentHit ? "命中本地上下文" : "未命中本地上下文",
   ];
   return {
-    theme: themeResult.label,
-    themeConfident: themeResult.confident,
     author,
     wereadMatch,
     agentHit,
@@ -242,42 +256,42 @@ function collectCopilotEvidence(text) {
   };
 }
 
-function detectReadingThemeWithEvidence(text) {
-  const rules = [
-    { label: "意义感", pattern: /意义|愿景|价值|真正|重要|生活|人生|空虚|虚无/ },
-    { label: "控制感", pattern: /控制|坚持|自律|选择|自由|秩序|规则|失控|稳定/ },
-    { label: "关系与孤独", pattern: /孤独|关系|亲密|理解|他人|沟通|爱|被看见/ },
-    { label: "欲望与成就", pattern: /成功|名利|野心|成就|得到|拥有|财富|目标/ },
-    { label: "时间与行动", pattern: /时间|长期|当下|行动|拖延|开始|完成|未来/ },
-  ];
-  const hit = rules.find((rule) => rule.pattern.test(text));
-  return hit ? { label: hit.label, confident: true } : { label: "这句话本身", confident: false };
+function buildEvidenceBasis(text) {
+  const book = currentBook();
+  const terms = extractReadableTerms(text);
+  return [
+    terms.length ? `原文：${terms.slice(0, 3).join(" / ")}` : "当前段落",
+    book ? `当前书：${book.title}` : "",
+    readableAuthor(book?.author) ? `作者：${readableAuthor(book?.author)}` : "",
+  ].filter(Boolean);
 }
 
-function buildAuthorView(theme, author, quoteTerms, themeConfident) {
-  const speaker = author ? `如果沿着 ${author} 的作者视角继续说` : "如果沿着这本书的作者视角继续说";
-  if (!themeConfident) {
-    const hook = quoteTerms[0] ? `你为什么停在「${quoteTerms[0]}」这里` : "你为什么偏偏复制这一句";
-    return `${speaker}，他可能不会急着解释原文。他会先问：${hook}？你是在同意它，还是被它暴露了一个你暂时不想承认的判断？`;
-  }
-  const lines = {
-    意义感: `${speaker}，他大概不会急着劝你“找到意义”。他会先问：你现在抓住的这个愿景，是从内心长出来的，还是你用来抵抗空虚的一套秩序？`,
-    控制感: `${speaker}，他可能不会夸你“更自律”。他会问：你现在说的坚持，是主动选择，还是你害怕失控时给自己套上的绳子？`,
-    关系与孤独: `${speaker}，他可能不会安慰你“会有人理解”。他会问：你想被看见，还是只想在不暴露真实需要的情况下被接住？`,
-    欲望与成就: `${speaker}，他可能不会反对成就本身。他会问：如果名利真的来了，你准备用它服务什么？还是只是证明自己终于安全了？`,
-    时间与行动: `${speaker}，他可能不会让你继续规划。他会问：你把“以后”说得这么清楚，是因为你真的要行动，还是因为计划比当下更容易承受？`,
-  };
-  return lines[theme] || `${speaker}，他可能会先停在这里问你：你为什么偏偏复制这一句？它不像答案，更像一个你还没有说出口的问题。`;
+function collectRelatedWereadSnippets(text) {
+  const book = currentBook();
+  if (!book) return [];
+  const wereadNotes = state.notes.filter((note) => note.bookId === book.id && note.source === "weread");
+  return scoreTextSnippets(text, wereadNotes.map((note) => note.text), 6);
 }
 
-function buildPersonalTurn(theme, thread, evidence) {
-  const contextLine = [
-    evidence.wereadMatch ? "你在微信读书里有相近划线，这不是第一次碰到它。" : "",
-    evidence.agentHit ? `本地上下文里也出现过「${evidence.agentHit}」。` : "",
-  ].filter(Boolean).join(" ");
-  const prefix = contextLine ? `${contextLine}\n\n` : "";
-  const focus = thread || theme;
-  return `${prefix}那你要不要诚实一点：你复制它，是想确认自己已经懂了，还是其实在等它反过来质问你「${focus}」这件事？`;
+function collectRelatedAgentSnippets(text) {
+  const sources = Array.isArray(agentContext.sources) ? agentContext.sources : [];
+  const sourceTexts = sources
+    .map((source) => source.text || "")
+    .filter(Boolean);
+  return scoreTextSnippets(text, sourceTexts, 5);
+}
+
+function scoreTextSnippets(text, snippets, limit) {
+  const tokens = extractChineseTokens(text);
+  return snippets
+    .map((snippet) => ({
+      text: String(snippet).trim(),
+      score: tokens.filter((token) => String(snippet).includes(token)).length,
+    }))
+    .filter((item) => item.text && item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((item) => item.text.slice(0, 360));
 }
 
 function readableAuthor(author) {
@@ -312,26 +326,30 @@ function extractChineseTokens(text) {
     .slice(0, 16);
 }
 
-function inferAgentSignal(theme) {
-  return findAgentHit(theme) || "";
+function inferAgentSignal(terms) {
+  return findAgentHit(Array.isArray(terms) ? terms : [terms]) || "";
 }
 
-function findAgentHit(theme) {
+function findAgentHit(terms) {
+  const lookupTerms = Array.isArray(terms) ? terms.filter(Boolean) : [terms].filter(Boolean);
   const keywords = Array.isArray(agentContext.keywords) ? agentContext.keywords : [];
   const sources = Array.isArray(agentContext.sources) ? agentContext.sources : [];
-  const exactHit = keywords.find((keyword) => theme.includes(keyword) || keyword.includes(theme));
+  const exactHit = keywords.find((keyword) => lookupTerms.some((term) => keyword.includes(term) || term.includes(keyword)));
   if (exactHit) return exactHit;
-  const sourceHit = sources.find((source) => source.text?.includes(theme));
-  if (sourceHit) return theme;
+  const sourceHit = sources.find((source) => lookupTerms.some((term) => source.text?.includes(term)));
+  if (sourceHit) return lookupTerms[0] || "";
   if (keywords.length) return keywords[0];
   return "";
 }
 
 function extractReadableTerms(text) {
-  const stopWords = new Set(["我们", "他们", "一个", "这个", "那个", "因此", "然后", "之后", "自己", "因为", "所以", "但是", "如果", "不是", "没有"]);
-  return [...new Set((text.match(/[\u4e00-\u9fa5]{2,6}/g) || [])
+  const conceptTerms = ["偏见", "客观", "真实", "冷静", "情绪化", "事实", "看法", "应该", "原则", "判断", "结果", "愿景", "意义", "控制", "选择", "行动"];
+  const conceptHits = conceptTerms.filter((term) => text.includes(term));
+  const stopWords = new Set(["我们", "他们", "一个", "这个", "那个", "因此", "然后", "之后", "自己", "因为", "所以", "但是", "如果", "不是", "没有", "不要", "需要", "想要", "取得"]);
+  const fallbackTerms = (text.match(/[\u4e00-\u9fa5]{2,4}/g) || [])
     .filter((term) => !stopWords.has(term))
-    .filter((term) => term.length >= 2))]
+    .filter((term) => term.length >= 2);
+  return [...new Set([...conceptHits, ...fallbackTerms])]
     .slice(0, 6);
 }
 
@@ -1209,8 +1227,8 @@ clearInputButton.addEventListener("click", () => {
   latestCopilotResponse = "";
   noteInput.focus();
 });
-copilotRefreshButton.addEventListener("click", () => {
-  if (!updateCopilotResponse()) {
+copilotRefreshButton.addEventListener("click", async () => {
+  if (!await updateCopilotResponse()) {
     showToast("先粘贴一段让你停住的话");
     noteInput.focus();
   }

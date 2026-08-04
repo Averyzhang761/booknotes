@@ -2,7 +2,7 @@
   "name": "读书笔记",
   "short_name": "读书笔记",
   "description": "边读微信读书边快速记录体会、摘句和随想。",
-  "start_url": "./index.html?v=20260803-31",
+  "start_url": "./index.html?v=20260803-32",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f8fafc",
