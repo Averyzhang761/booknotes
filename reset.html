@@ -46,7 +46,7 @@
       <h1>重置 Booknotes 缓存</h1>
       <p id="status">点击按钮会移除旧 service worker 和缓存，不会删除云端笔记。</p>
       <button type="button" id="reset">清缓存并重新打开</button>
-      <a href="./index.html?v=20260803-24">直接打开新版</a>
+      <a href="./index.html?v=20260803-26">直接打开新版</a>
     </main>
     <script>
       async function reset() {
@@ -64,7 +64,7 @@
         }
 
         status.textContent = "已清理，正在打开新版...";
-        location.href = "./index.html?v=20260803-24";
+        location.href = "./index.html?v=20260803-26";
       }
 
       document.querySelector("#reset").addEventListener("click", reset);

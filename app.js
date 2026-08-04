@@ -2,6 +2,7 @@ const prefsKey = "paper-booknotes-prefs-v1";
 const hiddenWereadAuthor = "__BOOKNOTES_HIDDEN__";
 
 const config = window.READING_NOTES_CONFIG || {};
+const agentContext = window.READING_AGENT_CONTEXT || {};
 const canUseCloud = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
 const db = canUseCloud ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey) : null;
 
@@ -23,6 +24,7 @@ let pasteTimer;
 let autoSavePasteInFlight = false;
 let toastTimer;
 let swipedBookId = null;
+let latestCopilotResponse = "";
 
 const views = document.querySelectorAll(".app-page");
 const tabs = document.querySelectorAll(".tab");
@@ -54,6 +56,10 @@ const saveNoteButton = document.querySelector("#saveNote");
 const pasteButton = document.querySelector("#pasteButton");
 const quoteWrapButton = document.querySelector("#quoteWrap");
 const clearInputButton = document.querySelector("#clearInput");
+const copilotCard = document.querySelector("#copilotCard");
+const copilotResponse = document.querySelector("#copilotResponse");
+const copilotRefreshButton = document.querySelector("#copilotRefresh");
+const copilotSaveButton = document.querySelector("#copilotSave");
 const bookSwitchButton = document.querySelector("#bookSwitch");
 const batchBooksButton = document.querySelector("#batchBooks");
 const cancelBatchBooksButton = document.querySelector("#cancelBatchBooks");
@@ -154,6 +160,94 @@ function updateInputMeta() {
   if (!typeLocked) {
     setType(inferType(text));
   }
+}
+
+function updateCopilotResponse(sourceText = noteInput.value) {
+  const text = sourceText.trim();
+  if (text.length < 12) {
+    copilotCard.classList.add("is-hidden");
+    latestCopilotResponse = "";
+    return false;
+  }
+
+  latestCopilotResponse = buildCopilotResponse(text);
+  copilotResponse.textContent = latestCopilotResponse;
+  copilotCard.classList.remove("is-hidden");
+  return true;
+}
+
+function buildCopilotResponse(text) {
+  const theme = detectReadingTheme(text);
+  const thread = inferRecentThread();
+  const wereadSignal = inferWereadSignal(text);
+  const agentSignal = inferAgentSignal(theme);
+  const book = currentBook();
+  const bookLabel = book ? `《${book.title}》` : "这本书";
+  return `你复制这段，可能不是因为它“重要”，而是它碰到了「${theme}」。放回 ${bookLabel} 看，${wereadSignal}；再结合本地上下文，${agentSignal}。要不要追问：这句话是在安慰我，还是在逼我承认一个问题？`;
+}
+
+function detectReadingTheme(text) {
+  const rules = [
+    { label: "意义感", pattern: /意义|愿景|价值|真正|重要|生活|人生|空虚|虚无/ },
+    { label: "控制感", pattern: /控制|坚持|自律|选择|自由|秩序|规则|失控|稳定/ },
+    { label: "关系与孤独", pattern: /孤独|关系|亲密|理解|他人|沟通|爱|被看见/ },
+    { label: "欲望与成就", pattern: /成功|名利|野心|成就|得到|拥有|财富|目标/ },
+    { label: "时间与行动", pattern: /时间|长期|当下|行动|拖延|开始|完成|未来/ },
+  ];
+  return rules.find((rule) => rule.pattern.test(text))?.label || "一个还没命名的反复主题";
+}
+
+function inferRecentThread() {
+  const recentText = state.notes
+    .filter((note) => note.source !== "weread")
+    .slice(0, 12)
+    .map((note) => note.text)
+    .join("\n");
+  if (/意义|愿景|价值|空虚|生活|人生/.test(recentText)) return "意义感";
+  if (/控制|坚持|自律|选择|自由|秩序/.test(recentText)) return "控制感";
+  if (/成功|名利|野心|成就|目标/.test(recentText)) return "欲望与成就";
+  if (/孤独|关系|亲密|理解|他人/.test(recentText)) return "关系与孤独";
+  return "为什么这句话会抓住我";
+}
+
+function inferWereadSignal(text) {
+  const book = currentBook();
+  if (!book) return "还缺少当前书这个坐标";
+  const wereadNotes = state.notes.filter((note) => note.bookId === book.id && note.source === "weread");
+  if (!wereadNotes.length) return "这本书还没有微信读书导入的划线可参照";
+
+  const bestMatch = findRelatedNote(text, wereadNotes);
+  const matchTheme = bestMatch ? detectReadingTheme(bestMatch.text) : "相邻主题";
+  return `微信读书里已有 ${wereadNotes.length} 条辅助信息，最接近的一条也指向「${matchTheme}」`;
+}
+
+function findRelatedNote(text, notes) {
+  const tokens = extractChineseTokens(text);
+  if (!tokens.length) return notes[0] || null;
+  return notes
+    .map((note) => ({
+      note,
+      score: tokens.filter((token) => note.text.includes(token)).length,
+    }))
+    .sort((a, b) => b.score - a.score)[0]?.note || notes[0] || null;
+}
+
+function extractChineseTokens(text) {
+  return [...new Set((text.match(/[\u4e00-\u9fa5]{2,}/g) || [])
+    .flatMap((item) => item.length > 6 ? [item.slice(0, 2), item.slice(-2)] : [item])
+    .filter((item) => item.length >= 2))]
+    .slice(0, 16);
+}
+
+function inferAgentSignal(theme) {
+  const keywords = Array.isArray(agentContext.keywords) ? agentContext.keywords : [];
+  const sources = Array.isArray(agentContext.sources) ? agentContext.sources : [];
+  const exactHit = keywords.find((keyword) => theme.includes(keyword) || keyword.includes(theme));
+  if (exactHit) return `它和你本地 agent 记录里的「${exactHit}」靠得很近`;
+  const sourceHit = sources.find((source) => source.text?.includes(theme));
+  if (sourceHit) return `它能接到本地 agent 读到的 ${sourceHit.path}`;
+  if (keywords.length) return `它暂时更像是在碰你长期反复出现的「${keywords.slice(0, 3).join(" / ")}」`;
+  return "还没有加载本地 agent 上下文，只能先按当前段落判断";
 }
 
 async function loadCloudData() {
@@ -428,6 +522,7 @@ async function pasteFromClipboard() {
     noteInput.focus();
     insertIntoNoteInput(text);
     updateInputMeta();
+    updateCopilotResponse(text);
     if (!maybeAutoSavePaste()) {
       showToast("已粘贴");
     }
@@ -1006,6 +1101,7 @@ noteInput.addEventListener("input", updateInputMeta);
 noteInput.addEventListener("paste", () => {
   setTimeout(() => {
     updateInputMeta();
+    updateCopilotResponse();
     maybeAutoSavePaste();
   }, 0);
 });
@@ -1023,6 +1119,21 @@ clearInputButton.addEventListener("click", () => {
   noteInput.value = "";
   typeLocked = false;
   setType("体会");
+  updateInputMeta();
+  copilotCard.classList.add("is-hidden");
+  latestCopilotResponse = "";
+  noteInput.focus();
+});
+copilotRefreshButton.addEventListener("click", () => {
+  if (!updateCopilotResponse()) {
+    showToast("先粘贴一段让你停住的话");
+    noteInput.focus();
+  }
+});
+copilotSaveButton.addEventListener("click", () => {
+  if (!latestCopilotResponse) return;
+  noteInput.value = latestCopilotResponse;
+  chooseType("体会");
   updateInputMeta();
   noteInput.focus();
 });

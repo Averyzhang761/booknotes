@@ -331,6 +331,54 @@ textarea::placeholder {
   margin-top: 12px;
 }
 
+.copilot-card {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--glass-highlight), var(--panel);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 12px 28px rgba(17, 24, 39, 0.1);
+  backdrop-filter: blur(18px) saturate(145%);
+}
+
+.copilot-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.copilot-top button,
+.copilot-save {
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--button);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.copilot-top button {
+  padding: 0 10px;
+}
+
+.copilot-card p {
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.copilot-save {
+  width: fit-content;
+  padding: 0 12px;
+}
+
 .auto-save-row {
   display: flex;
   align-items: center;
