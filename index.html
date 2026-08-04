@@ -10,7 +10,7 @@
     <title>读书笔记</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icon.svg" />
-    <link rel="stylesheet" href="./styles.css?v=20260803-27" />
+    <link rel="stylesheet" href="./styles.css?v=20260803-28" />
   </head>
   <body>
     <main class="phone-shell" aria-label="读书笔记应用">
@@ -73,10 +73,10 @@
 
         <section class="copilot-card" id="copilotCard" aria-live="polite">
           <div class="copilot-top">
-            <span>读中回应</span>
-            <button type="button" id="copilotRefresh">回应</button>
+            <span>第二作者</span>
+            <button type="button" id="copilotRefresh">换一句</button>
           </div>
-          <p id="copilotResponse">粘贴一段微信读书内容后，我会结合当前书、微信读书导入信息和本地 agent 上下文给一句回应。</p>
+          <p id="copilotResponse">粘贴一段微信读书内容后，我会沿着作者视角，结合当前书和你的本地上下文，回你一句可以继续聊的话。</p>
           <button type="button" class="copilot-save" id="copilotSave">存为体会</button>
         </section>
 
@@ -173,7 +173,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./config.js?v=20260803"></script>
-    <script src="./agent-context.local.js?v=20260803-27"></script>
-    <script src="./app.js?v=20260803-27"></script>
+    <script src="./agent-context.local.js?v=20260803-28"></script>
+    <script src="./app.js?v=20260803-28"></script>
   </body>
 </html>

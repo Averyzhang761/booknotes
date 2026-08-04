@@ -5,7 +5,7 @@ const config = window.READING_NOTES_CONFIG || {};
 const agentContext = window.READING_AGENT_CONTEXT || {};
 const canUseCloud = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
 const db = canUseCloud ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey) : null;
-const defaultCopilotText = "粘贴一段微信读书内容后，我会结合当前书、微信读书导入信息和本地 agent 上下文给一句回应。";
+const defaultCopilotText = "粘贴一段微信读书内容后，我会沿着作者视角，结合当前书和你的本地上下文，回你一句可以继续聊的话。";
 
 let prefs = loadPrefs();
 let state = {
@@ -179,11 +179,13 @@ function updateCopilotResponse(sourceText = noteInput.value) {
 function buildCopilotResponse(text) {
   const theme = detectReadingTheme(text);
   const thread = inferRecentThread();
-  const wereadSignal = inferWereadSignal(text);
+  const wereadSignal = inferWereadSignal(text, theme);
   const agentSignal = inferAgentSignal(theme);
   const book = currentBook();
-  const bookLabel = book ? `《${book.title}》` : "这本书";
-  return `你复制这段，可能不是因为它“重要”，而是它碰到了「${theme}」。放回 ${bookLabel} 看，${wereadSignal}；再结合本地上下文，${agentSignal}。要不要追问：这句话是在安慰我，还是在逼我承认一个问题？`;
+  const author = readableAuthor(book?.author);
+  const authorView = buildAuthorView(theme, author);
+  const personalTurn = buildPersonalTurn(theme, thread, wereadSignal, agentSignal);
+  return `${authorView}\n\n${personalTurn}`;
 }
 
 function detectReadingTheme(text) {
@@ -210,15 +212,40 @@ function inferRecentThread() {
   return "为什么这句话会抓住我";
 }
 
-function inferWereadSignal(text) {
+function buildAuthorView(theme, author) {
+  const speaker = author ? `如果沿着 ${author} 的作者视角继续说` : "如果沿着这本书的作者视角继续说";
+  const lines = {
+    意义感: `${speaker}，他大概不会急着劝你“找到意义”。他会先问：你现在抓住的这个愿景，是从内心长出来的，还是你用来抵抗空虚的一套秩序？`,
+    控制感: `${speaker}，他可能不会夸你“更自律”。他会问：你现在说的坚持，是主动选择，还是你害怕失控时给自己套上的绳子？`,
+    关系与孤独: `${speaker}，他可能不会安慰你“会有人理解”。他会问：你想被看见，还是只想在不暴露真实需要的情况下被接住？`,
+    欲望与成就: `${speaker}，他可能不会反对成就本身。他会问：如果名利真的来了，你准备用它服务什么？还是只是证明自己终于安全了？`,
+    时间与行动: `${speaker}，他可能不会让你继续规划。他会问：你把“以后”说得这么清楚，是因为你真的要行动，还是因为计划比当下更容易承受？`,
+  };
+  return lines[theme] || `${speaker}，他可能会先停在这里问你：你为什么偏偏复制这一句？它不像答案，更像一个你还没有说出口的问题。`;
+}
+
+function buildPersonalTurn(theme, thread, wereadSignal, agentSignal) {
+  const contextLine = [wereadSignal, agentSignal].filter(Boolean).join(" ");
+  const prefix = contextLine ? `${contextLine}\n\n` : "";
+  const focus = thread || theme;
+  return `${prefix}那你要不要诚实一点：你复制它，是想确认自己已经懂了，还是其实在等它反过来质问你「${focus}」这件事？`;
+}
+
+function readableAuthor(author) {
+  if (!author || author === hiddenWereadAuthor || author === "未填写") return "";
+  return author.split(/[·,，/]/)[0].trim();
+}
+
+function inferWereadSignal(text, theme) {
   const book = currentBook();
-  if (!book) return "还缺少当前书这个坐标";
+  if (!book) return "";
   const wereadNotes = state.notes.filter((note) => note.bookId === book.id && note.source === "weread");
-  if (!wereadNotes.length) return "这本书还没有微信读书导入的划线可参照";
+  if (!wereadNotes.length) return "";
 
   const bestMatch = findRelatedNote(text, wereadNotes);
-  const matchTheme = bestMatch ? detectReadingTheme(bestMatch.text) : "相邻主题";
-  return `微信读书里已有 ${wereadNotes.length} 条辅助信息，最接近的一条也指向「${matchTheme}」`;
+  const matchTheme = bestMatch ? detectReadingTheme(bestMatch.text) : theme;
+  if (!bestMatch || matchTheme === "一个还没命名的反复主题") return "";
+  return `你在微信读书里留下过相近的痕迹：这不是第一次碰到「${matchTheme}」。`;
 }
 
 function findRelatedNote(text, notes) {
@@ -243,11 +270,11 @@ function inferAgentSignal(theme) {
   const keywords = Array.isArray(agentContext.keywords) ? agentContext.keywords : [];
   const sources = Array.isArray(agentContext.sources) ? agentContext.sources : [];
   const exactHit = keywords.find((keyword) => theme.includes(keyword) || keyword.includes(theme));
-  if (exactHit) return `它和你本地 agent 记录里的「${exactHit}」靠得很近`;
+  if (exactHit) return `你的本地上下文里也反复出现「${exactHit}」。`;
   const sourceHit = sources.find((source) => source.text?.includes(theme));
-  if (sourceHit) return `它能接到本地 agent 读到的 ${sourceHit.path}`;
-  if (keywords.length) return `它暂时更像是在碰你长期反复出现的「${keywords.slice(0, 3).join(" / ")}」`;
-  return "还没有加载本地 agent 上下文，只能先按当前段落判断";
+  if (sourceHit) return `你的本地上下文里也有这个方向的记录。`;
+  if (keywords.length) return `它也许能接到你长期在处理的「${keywords.slice(0, 2).join(" / ")}」。`;
+  return "";
 }
 
 async function loadCloudData() {
