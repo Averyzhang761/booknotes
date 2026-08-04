@@ -1,13 +1,13 @@
-const OPENAI_RESPONSES = "https://api.openai.com/v1/responses";
+const OPENROUTER_CHAT_COMPLETIONS = "https://openrouter.ai/api/v1/chat/completions";
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") {
     return response(null, 204);
   }
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  const apiKey = Deno.env.get("OPENROUTER_API_KEY");
   if (!apiKey) {
-    return response({ error: "OPENAI_API_KEY is not configured" }, 500);
+    return response({ error: "OPENROUTER_API_KEY is not configured" }, 500);
   }
 
   const ownerEmail = normalizeEmail(Deno.env.get("OWNER_EMAIL"));
@@ -19,37 +19,49 @@ Deno.serve(async (request) => {
   try {
     const body = await request.json();
     const payload = toPromptPayload(body);
-    const model = Deno.env.get("SECOND_AUTHOR_MODEL") || "gpt-4.1-mini";
-    const result = await fetch(OPENAI_RESPONSES, {
+    const model = Deno.env.get("SECOND_AUTHOR_MODEL") || "google/gemini-2.5-flash";
+    const result = await fetch(OPENROUTER_CHAT_COMPLETIONS, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://averyzhang761.github.io/booknotes/",
+        "X-OpenRouter-Title": "Booknotes",
       },
       body: JSON.stringify({
         model,
-        instructions: [
-          "你是一个读书场景里的“第二作者”生成器。",
-          "先判断用户粘贴原文真正讨论的张力，再沿着作者视角提出尖锐但不装腔的苏格拉底式问题。",
-          "不要总结原文，不要解释系统，不要说你缺少什么数据。",
-          "你不能冒充作者本人，只能说“沿着作者视角”。",
-          "问题必须贴着原文措辞和当前书，不要套用固定主题，不要硬套意义感、空虚、控制感等标签。",
-          "如果原文在讨论客观、偏见、事实、情绪、判断，就围绕这些词追问，不要转到无关的意义、愿景或空虚。",
-          "输出 JSON，格式为 {\"response\":\"...\",\"basis\":[\"...\",\"...\"]}。",
-          "response 用中文，1-2 段，总长不超过 180 字。",
-          "basis 最多 3 条，只写实际使用的依据，例如原文关键词、当前书/作者、微信读书划线、本地上下文。",
-        ].join("\n"),
-        input: JSON.stringify(payload),
-        max_output_tokens: 420,
+        messages: [
+          {
+            role: "system",
+            content: [
+              "你是一个读书场景里的“第二作者”生成器。",
+              "先判断用户粘贴原文真正讨论的张力，再沿着作者视角提出尖锐但不装腔的苏格拉底式问题。",
+              "不要总结原文，不要解释系统，不要说你缺少什么数据。",
+              "你不能冒充作者本人，只能说“沿着作者视角”。",
+              "问题必须贴着原文措辞和当前书，不要套用固定主题，不要硬套意义感、空虚、控制感等标签。",
+              "如果原文在讨论客观、偏见、事实、情绪、判断，就围绕这些词追问，不要转到无关的意义、愿景或空虚。",
+              "输出 JSON，格式为 {\"response\":\"...\",\"basis\":[\"...\",\"...\"]}。",
+              "response 用中文，1-2 段，总长不超过 180 字。",
+              "basis 最多 3 条，只写实际使用的依据，例如原文关键词、当前书/作者、微信读书划线、本地上下文。",
+            ].join("\n"),
+          },
+          {
+            role: "user",
+            content: JSON.stringify(payload),
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 420,
+        response_format: { type: "json_object" },
       }),
     });
 
     const data = await result.json();
     if (!result.ok) {
-      return response({ error: data?.error?.message || "OpenAI request failed" }, result.status);
+      return response({ error: data?.error?.message || "OpenRouter request failed" }, result.status);
     }
 
-    const parsed = parseModelJson(data.output_text || extractOutputText(data));
+    const parsed = parseModelJson(extractChatContent(data));
     if (!parsed?.response) {
       return response({ error: "Model returned an invalid response" }, 502);
     }
@@ -77,12 +89,11 @@ function toPromptPayload(body: Record<string, unknown>) {
   };
 }
 
-function extractOutputText(data: Record<string, unknown>) {
-  const output = Array.isArray(data.output) ? data.output as Array<Record<string, unknown>> : [];
-  return output
-    .flatMap((item) => Array.isArray(item.content) ? item.content as Array<Record<string, unknown>> : [])
-    .map((content) => typeof content.text === "string" ? content.text : "")
-    .join("\n");
+function extractChatContent(data: Record<string, unknown>) {
+  const choices = Array.isArray(data.choices) ? data.choices as Array<Record<string, unknown>> : [];
+  const firstChoice = choices[0];
+  const message = firstChoice?.message as Record<string, unknown> | undefined;
+  return typeof message?.content === "string" ? message.content : "";
 }
 
 function parseModelJson(text: string) {
