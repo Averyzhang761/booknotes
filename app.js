@@ -1,6 +1,6 @@
 const prefsKey = "paper-booknotes-prefs-v1";
 const hiddenWereadAuthor = "__BOOKNOTES_HIDDEN__";
-const appVersion = "20260803-32";
+const appVersion = "20260804-33";
 
 const config = window.READING_NOTES_CONFIG || {};
 const agentContext = window.READING_AGENT_CONTEXT || {};
@@ -361,9 +361,10 @@ async function loadCloudData() {
     return;
   }
 
-  const [booksResult, notesResult] = await Promise.all([
+  const [booksResult, notesResult, settingsResult] = await Promise.all([
     db.from("books").select("id,title,author,source,external_id,created_at").order("created_at", { ascending: false }),
     db.from("notes").select("id,book_id,type,text,source,external_id,created_at").order("created_at", { ascending: false }),
+    db.from("user_settings").select("current_book_id").maybeSingle(),
   ]);
 
   if (booksResult.error || notesResult.error) {
@@ -397,13 +398,42 @@ async function loadCloudData() {
     return;
   }
 
-  if (!state.books.some((book) => book.id === state.currentBookId)) {
-    state.currentBookId = state.books[0].id;
-    prefs.currentBookId = state.currentBookId;
-    savePrefs();
+  const cloudCurrentBookId = settingsResult.error ? null : settingsResult.data?.current_book_id;
+  const nextCurrentBookId = [cloudCurrentBookId, state.currentBookId, prefs.currentBookId]
+    .find((bookId) => state.books.some((book) => book.id === bookId)) || state.books[0].id;
+
+  if (nextCurrentBookId !== state.currentBookId || nextCurrentBookId !== prefs.currentBookId) {
+    setCurrentBook(nextCurrentBookId, { persistCloud: false });
+  }
+  if (!settingsResult.error && nextCurrentBookId && cloudCurrentBookId !== nextCurrentBookId) {
+    saveCurrentBookSetting(nextCurrentBookId);
   }
 
   render();
+}
+
+function setCurrentBook(bookId, options = {}) {
+  const { persistCloud = true } = options;
+  state.currentBookId = bookId || null;
+  prefs.currentBookId = state.currentBookId;
+  savePrefs();
+  if (persistCloud) {
+    saveCurrentBookSetting(state.currentBookId);
+  }
+}
+
+async function saveCurrentBookSetting(bookId) {
+  if (!state.session) return;
+  const { error } = await db
+    .from("user_settings")
+    .upsert({
+      user_id: state.session.user.id,
+      current_book_id: bookId || null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+  if (error) {
+    console.warn("Current book setting was not saved", error);
+  }
 }
 
 async function createStarterBook() {
@@ -426,9 +456,7 @@ async function createStarterBook() {
     externalId: data.external_id,
     createdAt: data.created_at,
   }];
-  state.currentBookId = data.id;
-  prefs.currentBookId = data.id;
-  savePrefs();
+  setCurrentBook(data.id);
   render();
 }
 
@@ -505,7 +533,10 @@ function render() {
 function statusText() {
   if (!canUseCloud) return "未配置";
   if (!state.session) return "未登录";
-  return `${state.books.length} 本书 · ${state.notes.length} 条`;
+  const book = currentBook();
+  if (!book) return `${state.books.length} 本书 · ${state.notes.length} 条`;
+  const noteCount = state.notes.filter((note) => note.bookId === book.id && note.source !== "weread").length;
+  return `当前书 · ${noteCount} 条我的笔记`;
 }
 
 function renderNotes(bookId) {
@@ -722,9 +753,7 @@ async function addBook(event) {
     createdAt: data.created_at,
   };
   state.books.unshift(savedBook);
-  state.currentBookId = data.id;
-  prefs.currentBookId = data.id;
-  savePrefs();
+  setCurrentBook(data.id);
   closeBookForm();
   render();
   showToast(`当前书已切到《${title}》`);
@@ -1071,10 +1100,8 @@ bookList.addEventListener("click", (event) => {
     renderBooks();
     return;
   }
-  state.currentBookId = card.dataset.bookCard;
   swipedBookId = null;
-  prefs.currentBookId = state.currentBookId;
-  savePrefs();
+  setCurrentBook(card.dataset.bookCard);
   render();
   setView("capture");
 });
@@ -1178,9 +1205,7 @@ async function deleteBookRows(bookIds) {
   state.notes = state.notes.filter((note) => !bookIds.includes(note.bookId));
   selectedBookIds = new Set([...selectedBookIds].filter((id) => !bookIds.includes(id)));
   if (bookIds.includes(state.currentBookId)) {
-    state.currentBookId = state.books[0]?.id || null;
-    prefs.currentBookId = state.currentBookId;
-    savePrefs();
+    setCurrentBook(state.books[0]?.id || null);
   }
   swipedBookId = null;
   render();
