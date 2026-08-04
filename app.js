@@ -5,6 +5,7 @@ const config = window.READING_NOTES_CONFIG || {};
 const agentContext = window.READING_AGENT_CONTEXT || {};
 const canUseCloud = Boolean(config.supabaseUrl && config.supabaseAnonKey && window.supabase);
 const db = canUseCloud ? window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey) : null;
+const defaultCopilotText = "粘贴一段微信读书内容后，我会结合当前书、微信读书导入信息和本地 agent 上下文给一句回应。";
 
 let prefs = loadPrefs();
 let state = {
@@ -165,14 +166,13 @@ function updateInputMeta() {
 function updateCopilotResponse(sourceText = noteInput.value) {
   const text = sourceText.trim();
   if (text.length < 12) {
-    copilotCard.classList.add("is-hidden");
+    copilotResponse.textContent = text ? "这段太短，还不足以判断。粘贴一整句或一小段微信读书内容试试。" : defaultCopilotText;
     latestCopilotResponse = "";
     return false;
   }
 
   latestCopilotResponse = buildCopilotResponse(text);
   copilotResponse.textContent = latestCopilotResponse;
-  copilotCard.classList.remove("is-hidden");
   return true;
 }
 
@@ -1120,7 +1120,7 @@ clearInputButton.addEventListener("click", () => {
   typeLocked = false;
   setType("体会");
   updateInputMeta();
-  copilotCard.classList.add("is-hidden");
+  copilotResponse.textContent = defaultCopilotText;
   latestCopilotResponse = "";
   noteInput.focus();
 });
