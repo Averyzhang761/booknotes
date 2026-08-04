@@ -374,6 +374,12 @@ textarea::placeholder {
   line-height: 1.65;
 }
 
+.copilot-card .copilot-basis {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .copilot-save {
   width: fit-content;
   padding: 0 12px;
